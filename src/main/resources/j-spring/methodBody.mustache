@@ -1,0 +1,38 @@
+{{^reactive}}
+{{#examples}}
+if(bodyResult.hasErrors()){
+            return new ResponseEntity(ResponseErrorHelper.error(bodyResult), HttpStatus.BAD_REQUEST);
+        }
+
+        try{
+            {{>returnTypes}} res = {{classVarName}}Service.{{operationId}}();
+            return new ResponseEntity(res, HttpStatus.OK);
+        }catch (Exception ex){
+            log.error(ex.getMessage());
+            return new ResponseEntity(new ErrorResponse(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+{{/examples}}
+{{^examples}}
+return {{#jdk8}}{{#async}}CompletableFuture.completedFuture({{/async}}{{/jdk8}}new ResponseEntity<>({{#returnSuccessCode}}HttpStatus.OK{{/returnSuccessCode}}{{^returnSuccessCode}}HttpStatus.NOT_IMPLEMENTED{{/returnSuccessCode}}){{#jdk8}}{{#async}}){{/async}}{{/jdk8}};
+{{/examples}}
+{{/reactive}}
+{{#reactive}}
+Mono<Void> result = Mono.empty();
+    {{#examples}}
+        {{#-first}}
+        exchange.getResponse().setStatusCode({{#returnSuccessCode}}HttpStatus.valueOf({{{statusCode}}}){{/returnSuccessCode}}{{^returnSuccessCode}}HttpStatus.NOT_IMPLEMENTED{{/returnSuccessCode}});
+        for (MediaType mediaType : exchange.getRequest().getHeaders().getAccept()) {
+        {{/-first}}
+            if (mediaType.isCompatibleWith(MediaType.valueOf("{{{contentType}}}"))) {
+                result = ApiUtil.getExampleResponse(exchange, "{{#lambdaRemoveLineBreak}}{{#lambdaEscapeDoubleQuote}}{{{example}}}{{/lambdaEscapeDoubleQuote}}{{/lambdaRemoveLineBreak}}");
+                break;
+            }
+        {{#-last}}
+        }
+        {{/-last}}
+    {{/examples}}
+{{^examples}}
+        exchange.getResponse().setStatusCode({{#returnSuccessCode}}HttpStatus.OK{{/returnSuccessCode}}{{^returnSuccessCode}}HttpStatus.NOT_IMPLEMENTED{{/returnSuccessCode}});
+{{/examples}}
+        return result.then(Mono.empty());
+{{/reactive}}

@@ -1,0 +1,99 @@
+{
+	"info": {
+		"_postman_id": "{{postmanCollId}}",
+		"name": "{{openAPI.info.title}}",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+	    {{#openAPI.tags}}
+	    {
+    	  "name": "{{name}}",
+    	  "item": [],
+    	  "auth": {
+        				"type": "bearer",
+        				"bearer": [
+        					{
+        						"key": "token",
+        						"value": "{{=<% %>=}}{{jwtToken}}<%={{ }}=%>",
+        						"type": "string"
+        					}
+        				]
+        			},
+    	  "_postman_isSubFolder": true
+    	},
+    	{{/openAPI.tags}}
+    	{
+    	  "name": "default",
+        "item": [
+          {{#apiInfo.apis}}
+          {{#operations.operation}}
+          {
+            "name": "{{#tags}}{{name}} {{/tags}}{{operationId}}-Validate",
+            "item": [
+              {
+                "name": "{{operationId}} validate",
+                "request": {
+                  "method": "{{httpMethod}}",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "name": "Content-Type",
+                      "type": "text",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": {
+                    "mode": "raw",
+                    "raw": "{}"
+                  },
+                  "url": {
+                    "raw": "{{=<% %>=}}{{baseUrl}}<%={{ }}=%>{{path}}",
+                    "host": [
+                      "{{=<% %>=}}{{baseUrl}}<%={{ }}=%>"
+                    ],
+                    "path": []
+                  }
+                },
+                "response": []
+              }
+            ],
+            "_postman_isSubFolder": true
+          },
+          {
+            "name": "{{#tags}}{{name}} {{/tags}}{{operationId}}",
+            "request": {
+              "method": "{{httpMethod}}",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "name": "Content-Type",
+                  "type": "text",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{}"
+              },
+              "url": {
+                "raw": "{{=<% %>=}}{{baseUrl}}<%={{ }}=%>{{path}}",
+                "host": [
+                  "{{=<% %>=}}{{baseUrl}}<%={{ }}=%>"
+                ],
+                "path": []
+              }
+            },
+            "response": []
+          },
+          {{/operations.operation}}
+          {{/apiInfo.apis}}
+          {
+            "name": "end",
+            "item": [
+            ],
+            "_postman_isSubFolder": true
+          }
+        ]
+    	}
+	]
+}

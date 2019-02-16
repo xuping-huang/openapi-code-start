@@ -1,0 +1,32 @@
+package {{package}};
+
+{{#imports}}import {{import}};
+{{/imports}}
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.NotImplementedException;
+
+/**
+ * @class {{classname}}Service [controller file - {{classname}}Controller.java]
+ * @brief {{classname}} operation implement
+ * @note
+ */
+@Service
+{{#operations}}
+public class {{classname}}Service {
+    private static final Logger log = LoggerFactory.getLogger({{classname}}Service.class);
+
+{{^jdk8}}
+{{#operation}}
+    public {{>returnTypes}} {{operationId}}() {
+        // {{>returnTypes}} res = new {{>returnTypes}}();
+        // return res;
+        throw new NotImplementedException("Not Implement!");
+    }
+
+{{/operation}}
+{{/jdk8}}
+}
+{{/operations}}
