@@ -1,0 +1,248 @@
+const merge = require('merge-deep')
+const debug = require('debug')('api:model')
+{{#db_isJsonDB}}
+const path = require('path')
+const openDB = require('json-file-db')
+{{/db_isJsonDB}}
+{{#db_isDynamoDB}}
+const { DynamoDb, DynamoItem } = require('../lib/dynamo-db')
+{{/db_isDynamoDB}}
+{{#models}}
+{{#model}}
+{{#allVars}}
+{{#isRefObject}}
+const {{refObjectName}} = require('./{{refObjectName}}.model')
+{{/isRefObject}}
+{{/allVars}}
+{{/model}}
+{{/models}}
+const BaseModel = require('./base-model')
+
+const ID_PREFIX = 'XXX'
+
+const dynamoItem = new DynamoItem()
+const dynamoTable = dynamoItem.table('{{name}}')
+const dynamoIndexName = dynamoTable.index('indexName')
+
+{{#models}}
+{{#model}}
+{{#swgdoc}}
+/**
+ * @swagger
+ * definitions:
+ *   {{name}}:
+ *     required:
+         {{#allVars}}
+         {{#required}}
+ *       - {{name}}
+         {{/required}}
+         {{/allVars}}
+ *     properties:
+         {{#allVars}}
+ *       {{name}}:
+           {{#isRefObject}}
+ *         $ref: #/definitions/{{refObjectName}}
+ *         description: {{description}}
+           {{/isRefObject}}
+           {{^isRefObject}}
+           {{#isUuid}}
+ *         type: string
+           {{/isUuid}}
+           {{^isUuid}}
+ *         type: {{baseType}}
+           {{/isUuid}}
+           {{#isListContainer}}
+ *         items:
+           {{#isContainer}}
+ *           type: #/definitions/{{complexType}}
+           {{/isContainer}}
+           {{^isContainer}}
+ *           type: {{complexType}}
+           {{/isContainer}}
+           {{/isListContainer}}
+           {{^isListContainer}}
+           {{#dataFormat}}
+ *         format: {{dataFormat}}
+           {{/dataFormat}}
+           {{#title}}
+ *         title: {{title}}
+           {{/title}}
+           {{#min}}
+ *         min: {{min}}
+           {{/min}}
+           {{#max}}
+ *         max: {{max}}
+           {{/max}}
+           {{#maxLength}}
+ *         maxLength: {{maxLength}}
+           {{/maxLength}}
+           {{#minLength}}
+ *         minLength: {{minLength}}
+           {{/minLength}}
+           {{#minimum}}
+ *         minimum: {{minimum}}
+           {{/minimum}}
+           {{#maximum}}
+ *         maximum: {{maximum}}
+           {{/maximum}}
+           {{#exclusiveMinimum}}
+ *         exclusiveMinimum: {{exclusiveMinimum}}
+           {{/exclusiveMinimum}}
+           {{#exclusiveMaximum}}
+ *         exclusiveMaximum: {{exclusiveMaximum}}
+           {{/exclusiveMaximum}}
+           {{#isEnum}}
+ *         enum:
+           {{#_enum}}
+ *           - {{.}}
+           {{/_enum}}
+           {{/isEnum}}
+           {{/isListContainer}}
+ *         description: {{description}}
+           {{/isRefObject}}
+         {{/allVars}}
+ */
+{{/swgdoc}}
+{{^swgdoc}}
+/**
+ * Class representing a {{name}}.
+ * @extends BaseModel
+ */
+{{/swgdoc}}
+class {{name}}Model extends BaseModel {
+  /**
+   * constructor
+   * @param {object} values - init values for class instance
+   */
+  constructor (values) {
+    super()
+    {{#allVars}}
+    {{#isRefObject}}
+    this.{{name}} = new {{refObjectName}}()
+    {{/isRefObject}}
+    {{^isRefObject}}
+    this.{{name}} = {{#isListContainer}}[]{{/isListContainer}}{{^isListContainer}}undefined{{/isListContainer}}
+    {{/isRefObject}}
+    {{/allVars}}
+
+    if (values) {
+      this.setValues(values)
+    }
+  }
+
+  /**
+   * set the values.
+   * @param values Can be used to set a webapi response to this newly constructed model
+   */
+  setValues (values) {
+    if (values) {
+      {{#allVars}}
+      {{#isRefObject}}
+      this.{{refObjectName}}.setValues(values.{{refObjectName}})
+      {{/isRefObject}}
+      {{^isRefObject}}
+      {{#isListContainer}}
+      this.fillModelArray(this, '{{name}}', values.{{name}}, {{complexType}})
+      {{/isListContainer}}
+      {{^isListContainer}}
+      this.{{name}} = values.{{name}}
+      {{/isListContainer}}
+      {{/isRefObject}}
+      {{/allVars}}
+    }
+  }
+
+  {{#db_isJsonDB}}
+  /**
+   * load lookup value of {{name}}
+   * @param search filter {{name}} by - {{#allVars}}{{#needFilter}}{{name}}, {{/needFilter}}{{/allVars}}
+   */
+  static async load(search) {
+    const filePath = path.join(__dirname, '../../db/{{classFilename}}.json')
+    const db = openDB(filePath)
+    return new Promise((resolve, reject) => {
+      db.get((err, datas) => {
+        if (err) return reject(err)
+        {{#hasFilterProperty}}
+        if (search && search.trim().length > 0) {
+          const filter = search.trim().toLowerCase();
+          datas = datas.filter((data) => {
+            const result = {{#allVars}}{{#needFilter}}{{^isFirstFilter}}|| {{/isFirstFilter}}this.isInclude(data.{{name}}, filter){{/needFilter}}
+              {{/allVars}}
+            return result
+          })
+        }
+        {{/hasFilterProperty}}
+        resolve(datas)
+      });
+    });
+  }
+  {{/db_isJsonDB}}
+  {{#db_isDynamoDB}}
+  newId (userId) {
+    return this.genId(ID_PREFIX, userId)
+  }
+
+  saveItem () {
+    return {
+    {{#allVars}}
+      {{#isRefObject}}
+      {{refObjectName}}: this.{{refObjectName}}{{#hasMore}},{{/hasMore}}
+      {{/isRefObject}}
+      {{^isRefObject}}
+      {{name}}: this.{{name}}{{#hasMore}},{{/hasMore}}
+      {{/isRefObject}}
+      {{/allVars}}
+    }
+  }
+
+  saveOption (item) {
+    return dynamoTable.item(item).option()
+  }
+
+  async save (userId) {
+    if (!this.id) {
+      this.id = this.newId(userId)
+    }
+
+    const item = this.saveItem()
+    const options = this.saveOption(item)
+    await DynamoDb.put(options).promise()
+    return Promise.resolve(item)
+  }
+
+  async update (auditLog) {
+    const item = this.saveItem()
+    const options = this.saveOption(item)
+    await DynamoDb.put(options).promise()
+    return Promise.resolve(item)
+  }
+
+  async search (query) {
+    let dynamoOption = dynamoTable.limit(query.perPage)
+    if (query.name) dynamoOption = dynamoOption.and().contains('lowerName', query.name.toLowerCase())
+
+    const options = dynamoOption.projectionAll().option()
+
+    const total = await this.getTotal(DynamoDb, dynamoIndexName, 'lowerName', dynamoOption)
+    let data = {}
+    if (query.page === 1 || query.lastEvaluatedKey) {
+      data = await DynamoDb.scan(options).promise()
+    } else {
+      data = await this.pageSearch(DynamoDb, query.page, query.perPage, total, options)
+    }
+
+    const retData = merge(data, { Page: query.page, PerPage: query.perPage, Total: total })
+    return Promise.resolve(retData)
+  }
+
+  async findById (id) {
+    const options = dynamoTable.key({ id }).option()
+    const data = await DynamoDb.get(options).promise()
+    return Promise.resolve(data)
+  }
+  {{/db_isDynamoDB}}
+}
+module.exports = {{name}}Model
+{{/model}}
+{{/models}}

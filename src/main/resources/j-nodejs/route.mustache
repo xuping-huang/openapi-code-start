@@ -1,0 +1,60 @@
+const server = require('express')
+const jwt = require('jsonwebtoken')
+const expressJwt = require('express-jwt')
+const config = require('../config/config')
+
+const router = new server.Router()
+{{#openAPI}}
+{{#swgdoc}}
+/**
+ * @swagger
+ * tags:
+ {{#tags}}
+ *   - name: {{name}}
+ *     description: {{description}}
+ {{/tags}}
+ */
+ {{/swgdoc}}
+{{/openAPI}}
+
+{{#apiInfo}}
+{{#apis}}
+const {{classname}}Ctrl = require('./{{classFilename}}')
+{{/apis}}
+{{/apiInfo}}
+
+/**
+ * Return token for userid
+ */
+router.get('/auth/login/:userId', async (req, res, next) => {
+  /** ignore validate because this api just for test easily */
+  const { userId } = req.params
+  const { role } = req.query
+
+  const token = jwt.sign({
+    userId,
+    role
+  }, config.jwt.secretKey, {
+    expiresIn: config.jwt.expired
+  })
+  return res.json({
+    token,
+    userId,
+    role
+  })
+})
+{{#apiInfo}}
+{{#apis}}
+{{#operations}}
+{{#operation}}
+
+// {{httpMethod}} {{basePathWithoutHost}}{{path}}
+router.route('{{path}}').{{httpMethod}}(expressJwt({
+  secret: config.jwt.secretKey
+}), {{classname}}Ctrl.{{operationId}})
+{{/operation}}
+{{/operations}}
+{{/apis}}
+{{/apiInfo}}
+
+module.exports = router

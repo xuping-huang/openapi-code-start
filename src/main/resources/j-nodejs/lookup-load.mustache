@@ -1,0 +1,44 @@
+const {
+{{#models}}
+{{#model}}
+{{#vendorExtensions}}
+{{#x-lookup-property}}
+  {{name}},
+{{/x-lookup-property}}
+{{/vendorExtensions}}
+{{/model}}
+{{/models}}
+} = require('../model/index')
+{{#db_isJsonDB}}
+let loadLookups
+
+/**
+ * Convert lookup to array struct
+ */
+const readAllLookups = async () => {
+  const ret = {}
+  {{#models}}
+  {{#model}}
+  {{#vendorExtensions}}
+  {{#x-lookup-property}}
+  const array{{name}} = await {{name}}.load()
+  if ( array{{name}} ) {
+    ret.{{name}} = array{{name}}.map((item) => {
+      return item.{{x-lookup-property}}
+    })
+  }
+  {{/x-lookup-property}}
+  {{/vendorExtensions}}
+  {{/model}}
+  {{/models}}
+    
+  return ret
+}
+
+exports.getLookups = async () => {
+  if (!loadLookups) {
+    loadLookups = await readAllLookups()
+  }
+  return loadLookups
+}
+{{/db_isJsonDB}}

@@ -1,0 +1,16 @@
+/**
+ * export all model together
+*/
+{{#models}}
+{{#model}}
+const {{name}}Model = require('./{{classFilename}}.model')
+{{/model}}
+{{/models}}
+
+module.exports = {
+{{#models}}
+{{#model}}
+  {{name}}Model,
+{{/model}}
+{{/models}}
+}

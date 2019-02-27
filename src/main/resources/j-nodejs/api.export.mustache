@@ -1,0 +1,168 @@
+const Joi = require('joi')
+const merge = require('merge-deep')
+const httpStatus = require('http-status')
+const config = require('../config/config')
+const { formatPagingData } = require('../lib/paging')
+const { {{#db_isDynamoDB}}checkLastEvaluatedKey, {{/db_isDynamoDB}}JoiPage, JoiPerPage, JoiBoolean, checkAdmin } = require('../lib/valid-utils')
+const { getUserInfoFromToken } = require('../lib/common')
+const { AuthenticateError, BadRequestError } = require('../lib/app-error')
+
+const {{classname}}Service = require('../service/service.{{classname}}')
+
+{{#operations}}
+{{#operation}}
+{{#swgdoc}}
+/**
+ * @swagger
+ * {{path}}:
+ *   {{httpMethod}}:
+ *     description: {{summary}}
+ *     tags:
+         {{#tags}}
+ *       - {{name}}
+         {{/tags}}
+ *     produces:
+         {{#produces}}
+ *       - {{mediaType}}
+         {{/produces}}
+ *     parameters:
+         {{#allParams}}
+ *       - name: {{paramName}}
+ *         description: {{description}}
+ *         in: {{#isFormParam}}formData{{/isFormParam}}{{#isQueryParam}}query{{/isQueryParam}}{{#isPathParam}}path{{/isPathParam}}{{#isHeaderParam}}header{{/isHeaderParam}}{{#isBodyParam}}body{{/isBodyParam}}
+ *         required: {{#isPathParam}}true{{/isPathParam}}{{#isBodyParam}}true{{/isBodyParam}}{{#isFormParam}}true{{/isFormParam}}{{#isQueryParam}}false{{/isQueryParam}}{{#isHeaderParam}}false{{/isHeaderParam}}
+           {{#isRefObject}}
+ *         schema:
+ *           $ref: #/definitions/{{refObjectName}}
+           {{/isRefObject}}
+           {{^isRefObject}}
+           {{#isUuid}}
+ *         type: string
+           {{/isUuid}}
+           {{^isUuid}}
+ *         type: {{dataType}}
+           {{/isUuid}}
+           {{#isListContainer}}
+ *         items:
+           {{#isContainer}}
+ *           type: #/definitions/{{complexType}}
+           {{/isContainer}}
+           {{^isContainer}}
+ *           type: {{dataType}}
+           {{/isContainer}}
+           {{/isListContainer}}
+           {{^isListContainer}}
+           {{#dataFormat}}
+ *         format: {{dataFormat}}
+           {{/dataFormat}}
+           {{#min}}
+ *         min: {{min}}
+           {{/min}}
+           {{#max}}
+ *         max: {{max}}
+           {{/max}}
+           {{#maxLength}}
+ *         maxLength: {{maxLength}}
+           {{/maxLength}}
+           {{#minLength}}
+ *         minLength: {{minLength}}
+           {{/minLength}}
+           {{#minimum}}
+ *         minimum: {{minimum}}
+           {{/minimum}}
+           {{#maximum}}
+ *         maximum: {{maximum}}
+           {{/maximum}}
+           {{#exclusiveMinimum}}
+ *         exclusiveMinimum: {{exclusiveMinimum}}
+           {{/exclusiveMinimum}}
+           {{#exclusiveMaximum}}
+ *         exclusiveMaximum: {{exclusiveMaximum}}
+           {{/exclusiveMaximum}}
+           {{#isEnum}}
+ *         enum:
+           {{#_enum}}
+ *           - {{.}}
+           {{/_enum}}
+           {{/isEnum}}
+           {{/isListContainer}}
+           {{/isRefObject}}
+         {{/allParams}}
+ *     responses:
+         {{#responses}}
+ *       {{code}}:
+ *         description: {{message}}
+ *         schema:
+ *           $ref: {{schema.genericRef.ref}}
+         {{/responses}}
+ */
+{{/swgdoc}}
+{{^swgdoc}}
+/**
+ * {{notes}}
+ * @param {object} req - the request object
+ * @param {object} res - the response object
+ * @param {function} next - pass flow control to next component
+ */
+{{/swgdoc}}
+exports.{{nickname}} = async (req, res, next) => {
+  const params = merge(req.query, req.body, req.params)
+  const schema = Joi.object({
+  {{#pathParams}}
+    {{> joiParam}}
+  {{/pathParams}}
+  {{#bodyParam}}
+    {{#isModel}}
+    {{#vendorExtensions}}
+    {{#x-refModel}}
+    {{#vars}}
+    {{> joiParam}}
+    {{/vars}}
+    {{/x-refModel}}
+    {{/vendorExtensions}}
+    {{/isModel}}
+  {{/bodyParam}}
+  {{#queryParams}}
+    {{> joiParam}}
+  {{/queryParams}}
+  }).unknown().required()
+
+  const { error, value: joiResult } = Joi.validate(params, schema, { abortEarly: false })
+  if (error) return next(error)
+
+  try {
+    const user = await getUserInfoFromToken(req)
+    checkAdmin(user.role)
+    {{#db_isDynamoDB}}
+    checkLastEvaluatedKey(joiResult.lastEvaluatedKey)
+    {{/db_isDynamoDB}}
+    const data = await {{classname}}Service.{{nickname}}(joiResult, user)
+    {{#vendorExtensions}}
+    {{#x-get-method}}
+    {{#isListContainer}}
+    const pagingData = formatPagingData(req, data)
+    return res.set(pagingData.Headers).json(pagingData.Items)
+    {{/isListContainer}}
+    {{^isListContainer}}
+    return res.json(data)
+    {{/isListContainer}}
+    {{/x-get-method}}
+    {{#x-post-method}}
+    return res.status(httpStatus.CREATED).json(data)
+    {{/x-post-method}}
+    {{#x-put-method}}
+    return res.json(data)
+    {{/x-put-method}}
+    {{#x-patch-method}}
+    return res.json(data)
+    {{/x-patch-method}}
+    {{#x-delete-method}}
+    return res.json(data)
+    {{/x-delete-method}}
+    {{/vendorExtensions}}
+  } catch (err) {
+    return next(err)
+  }
+}
+{{/operation}}
+{{/operations}}

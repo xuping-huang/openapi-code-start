@@ -1,1 +1,3 @@
 com.huangxuping.codegen.JSpringGenerator
+com.huangxuping.codegen.PostmanGenerator
+com.huangxuping.codegen.NodeJSServerGenerator

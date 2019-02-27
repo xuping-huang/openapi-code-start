@@ -1,0 +1,106 @@
+const { hashCode } = require('../lib/common')
+const merge = require('merge-deep')
+
+class BaseModel {
+  /**
+   * generate id
+   */
+  genId (prefix, userId) {
+    const userCode = hashCode(userId) % 100000
+    return `${prefix}:${+Date.now()}:${userCode}`
+  }
+
+  {{#db_isJsonDB}}
+  /**
+   * fill array property in model.
+   * for complex types, type must be defined.
+   * not support for complex types with subtypes
+   */
+  static fillModelArray (object, key, values, TypeClass = undefined) {
+    if (values) {
+      object[key] = []
+      values.forEach((value) => {
+        if (TypeClass) {
+          object[key].push(new TypeClass(value))
+        } else {
+          object[key].push(value)
+        }
+      })
+    }
+  }
+
+  /**
+   * isInclude
+   * @param target
+   * @param search
+   * @returns
+   */
+  static isInclude (target, search) {
+    return target && target.toString().toLowerCase().includes(search)
+  }
+  {{/db_isJsonDB}}
+  {{#db_isNeo4j}}
+  /**
+   * isNotFound
+   */
+  static isNotFound(neoResult) {
+    const notFound = neoResult.records.length === 0
+    return notFound
+  }
+  {{/db_isNeo4j}}
+  {{#db_isDynamoDB}}
+  /**
+   * count page search times
+   */
+  getSearchTimes (page, perPage, total) {
+    let start = 0
+    for (; start < page; start++) {
+      if (start * perPage >= total) break
+    }
+    return start
+  }
+
+  /**
+   * search items with page
+   */
+  async pageSearch (DynamoDb, page, perPage, total, options) {
+    const searchTimes = this.getSearchTimes(page, perPage, total)
+    let data = {}
+    for (let i = 0; i < searchTimes; i++) {
+      let searchOptions = options
+      if (data.LastEvaluatedKey) {
+        searchOptions = merge(options, { ExclusiveStartKey: data.LastEvaluatedKey })
+      }
+      data = await DynamoDb.scan(searchOptions).promise()
+    }
+    return Promise.resolve(data)
+  }
+
+  /**
+   * get total of items in table
+   */
+  async getTotal (dynamoDb, dyTable, fieldName, dynamoOption) {
+    let data = {}
+    let total = 0
+
+    if (!dynamoOption.hasFilter()) {
+      const option = dyTable.countOnly(fieldName).option()
+      data = await dynamoDb.scan(option).promise()
+      total = data.ScannedCount
+    } else {
+      let lastKey
+      do {
+        if (lastKey) { // 1M return data size limit
+          dynamoOption = dynamoOption.startkey(lastKey)
+        }
+        data = await dynamoDb.scan(dynamoOption.cleanLimit().option()).promise()
+        total = total + data.Count
+        lastKey = data.LastEvaluatedKey
+      } while (lastKey)
+    }
+    return Promise.resolve(total)
+  }
+  {{/db_isDynamoDB}}
+}
+
+module.exports = BaseModel
