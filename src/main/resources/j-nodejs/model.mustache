@@ -16,7 +16,7 @@ const {{refObjectName}} = require('./{{refObjectName}}.model')
 {{/allVars}}
 {{/model}}
 {{/models}}
-const BaseModel = require('./base-model')
+const BaseModel = require('./base.model')
 
 const ID_PREFIX = 'XXX'
 
@@ -132,7 +132,7 @@ class {{name}}Model extends BaseModel {
 
   /**
    * set the values.
-   * @param values Can be used to set a webapi response to this newly constructed model
+   * @param {object} values - Can be used to set a webapi response to this newly constructed model
    */
   setValues (values) {
     if (values) {
@@ -155,7 +155,8 @@ class {{name}}Model extends BaseModel {
   {{#db_isJsonDB}}
   /**
    * load lookup value of {{name}}
-   * @param search filter {{name}} by - {{#allVars}}{{#needFilter}}{{name}}, {{/needFilter}}{{/allVars}}
+   * @param {object} search - filter {{name}} by - {{#allVars}}{{#needFilter}}{{name}}, {{/needFilter}}{{/allVars}}
+   * @return {object} load result
    */
   static async load(search) {
     const filePath = path.join(__dirname, '../../db/{{classFilename}}.json')
@@ -179,10 +180,19 @@ class {{name}}Model extends BaseModel {
   }
   {{/db_isJsonDB}}
   {{#db_isDynamoDB}}
+  /**
+   * generate new id
+   * @param {string} userId - user id
+   * @return {string} the generated id
+   */
   newId (userId) {
     return this.genId(ID_PREFIX, userId)
   }
 
+  /**
+   * Return item info to save
+   * @return {object} the content need be saved
+   */
   saveItem () {
     return {
     {{#allVars}}
@@ -196,10 +206,20 @@ class {{name}}Model extends BaseModel {
     }
   }
 
+  /**
+   * Return item saving options of dynamoDB
+   * @param {object} item - item to save
+   * @return {object} a dynamo item content to be saved
+   */
   saveOption (item) {
     return dynamoTable.item(item).option()
   }
 
+  /**
+   * Save object
+   * @param {string} userId - current user id
+   * @return {object} saved data
+   */
   async save (userId) {
     if (!this.id) {
       this.id = this.newId(userId)
@@ -211,6 +231,11 @@ class {{name}}Model extends BaseModel {
     return Promise.resolve(item)
   }
 
+  /**
+   * Update object with audit log
+   * @param {object} auditLog - the audit log for the property changes
+   * @return {object} updated data
+   */
   async update (auditLog) {
     const item = this.saveItem()
     const options = this.saveOption(item)
@@ -218,6 +243,11 @@ class {{name}}Model extends BaseModel {
     return Promise.resolve(item)
   }
 
+  /**
+   * Search objects by conditions
+   * @param {object} query - the search conditions
+   * @return {object} search result
+   */
   async search (query) {
     let dynamoOption = dynamoTable.limit(query.perPage)
     if (query.name) dynamoOption = dynamoOption.and().contains('lowerName', query.name.toLowerCase())
@@ -236,6 +266,11 @@ class {{name}}Model extends BaseModel {
     return Promise.resolve(retData)
   }
 
+  /**
+   * Find object by id
+   * @param {string} id - the object id
+   * @return {object} found object
+   */
   async findById (id) {
     const options = dynamoTable.key({ id }).option()
     const data = await DynamoDb.get(options).promise()

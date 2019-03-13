@@ -101,9 +101,8 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         additionalProperties.put("implFolder", implFolder);
 
         supportingFiles.add(new SupportingFile("model-index.mustache", ("model").replace(".", File.separator), "index.js"));
-        supportingFiles.add(new SupportingFile("route.mustache", ("controller").replace(".", File.separator), "api.route.js"));
+        supportingFiles.add(new SupportingFile("route.mustache", "../", "app-route.js"));
         supportingFiles.add(new SupportingFile("lookup-load.mustache", ("lib").replace(".", File.separator), "lookup-load.js"));
-        supportingFiles.add(new SupportingFile("baseModel.mustache", ("model").replace(".", File.separator), "base-model.js"));
 
         cliOptions.add(new CliOption(SERVER_PORT,
                 "TCP port to listen on."));
@@ -173,7 +172,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         if (templateName.equals("export.service.mustache")) {
             String stringToMatch = "controller" + File.separator;
             String replacement =  implFolder + File.separator;
-            result = result.replace(stringToMatch, replacement).replace("controller.","service.");
+            result = result.replace(stringToMatch, replacement).replace("api.","service.");
         }
         return result;
     }

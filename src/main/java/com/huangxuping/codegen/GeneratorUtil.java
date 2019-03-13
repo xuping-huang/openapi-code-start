@@ -40,7 +40,7 @@ public class GeneratorUtil {
                 HashMap map = (HashMap)item;
                 // dataType === model.name
                 CodegenModel model = (CodegenModel)map.get("model");
-                if ( model.name.equalsIgnoreCase(operation.bodyParam.dataType)){
+                if ( model.classname.equalsIgnoreCase(operation.bodyParam.dataType)){
                     operation.bodyParam.vendorExtensions.put("x-refModel", model);
                     break;
                 }

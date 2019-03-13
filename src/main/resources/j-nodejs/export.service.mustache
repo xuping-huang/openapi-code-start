@@ -7,8 +7,11 @@ const { {{baseName}}Model } = require('../model/index')
 {{#operation}}
 /**
  * Create a new challenge in the system.
+ * @param {object} params - {{#vendorExtensions}}{{#x-get-method}}the search conditions{{/x-get-method}}{{#x-post-method}}the obj to create{{/x-post-method}}{{#x-put-method}}the obj to update{{/x-put-method}}{{#x-patch-method}}the property of obj to update{{/x-patch-method}}{{#x-delete-method}}the delete conditions{{/x-delete-method}}{{/vendorExtensions}}
+ * @param {object} user - user info
+ * @return {object} the result data
  **/
-exports.{{nickname}} = async function (params, user) {
+exports.{{nickname}} = async (params, user) => {
   try {
     {{#vendorExtensions}}
     {{#x-post-method}}

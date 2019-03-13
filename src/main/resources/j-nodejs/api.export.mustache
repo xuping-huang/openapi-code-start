@@ -2,9 +2,12 @@ const Joi = require('joi')
 const merge = require('merge-deep')
 const httpStatus = require('http-status')
 const config = require('../config/config')
+const { JoiError } = require('../lib/app-error')
 const { formatPagingData } = require('../lib/paging')
 const { {{#db_isDynamoDB}}checkLastEvaluatedKey, {{/db_isDynamoDB}}JoiPage, JoiPerPage, JoiBoolean, checkAdmin } = require('../lib/valid-utils')
+{{#userToken}}
 const { getUserInfoFromToken } = require('../lib/common')
+{{/userToken}}
 const { AuthenticateError, BadRequestError } = require('../lib/app-error')
 
 const {{classname}}Service = require('../service/service.{{classname}}')
@@ -111,7 +114,7 @@ exports.{{nickname}} = async (req, res, next) => {
   {{#pathParams}}
     {{> joiParam}}
   {{/pathParams}}
-  {{#bodyParam}}
+  {{#bodyParams}}
     {{#isModel}}
     {{#vendorExtensions}}
     {{#x-refModel}}
@@ -121,18 +124,23 @@ exports.{{nickname}} = async (req, res, next) => {
     {{/x-refModel}}
     {{/vendorExtensions}}
     {{/isModel}}
-  {{/bodyParam}}
+    {{^isModel}}
+    {{> joiParam}}
+    {{/isModel}}
+  {{/bodyParams}}
   {{#queryParams}}
     {{> joiParam}}
   {{/queryParams}}
   }).unknown().required()
 
   const { error, value: joiResult } = Joi.validate(params, schema, { abortEarly: false })
-  if (error) return next(error)
+  if (error) return next(new JoiError(error))
 
   try {
+    {{#userToken}}
     const user = await getUserInfoFromToken(req)
     checkAdmin(user.role)
+    {{/userToken}}
     {{#db_isDynamoDB}}
     checkLastEvaluatedKey(joiResult.lastEvaluatedKey)
     {{/db_isDynamoDB}}
