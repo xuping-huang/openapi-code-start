@@ -11,25 +11,14 @@ import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.info.Info;
 import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.openapitools.codegen.CliOption;
-import org.openapitools.codegen.CodegenConfig;
-import org.openapitools.codegen.CodegenOperation;
-import org.openapitools.codegen.CodegenType;
-import org.openapitools.codegen.DefaultCodegen;
-import org.openapitools.codegen.SupportingFile;
+import org.openapitools.codegen.*;
 import org.openapitools.codegen.utils.URLPathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConfig {
@@ -59,9 +48,12 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
          * a different extension
          */
         modelTemplateFiles.put(
-                "model.mustache",
+                "model.repo.mustache",
                 ".model.js"
         );
+        modelTestTemplateFiles.put(
+                "unit.model.mustache",   // the template to use
+                ".model.spec.js");       // the extension for each file to write
 
         /*
          * Api classes.  You can write classes for each Api file with the apiTemplateFiles map.
@@ -69,11 +61,20 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
          * class
          */
         apiTemplateFiles.put(
-                "api.export.mustache",   // the template to use
-                ".js");       // the extension for each file to write
+                "controller.operation.mustache",
+                ".js");
         apiTemplateFiles.put(
-                "export.service.mustache",   // the template to use
+                "service.operation.mustache",   // the template to use
                 ".js");       // the extension for each file to write
+        apiTestTemplateFiles.put(
+                "e2e.operation.mustache",   // the template to use
+                ".test.js");       // the extension for each file to write
+        apiTestTemplateFiles.put(
+                "unit.controller.mustache",   // the template to use
+                ".spec.js");       // the extension for each file to write
+        apiTestTemplateFiles.put(
+                "unit.service.mustache",   // the template to use
+                ".spec.js");       // the extension for each file to write
 
         /*
          * Template Location.  This is the location which templates will be read from.  The generator
@@ -100,9 +101,14 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         additionalProperties.put("apiVersion", apiVersion);
         additionalProperties.put("implFolder", implFolder);
 
-        supportingFiles.add(new SupportingFile("model-index.mustache", ("model").replace(".", File.separator), "index.js"));
-        supportingFiles.add(new SupportingFile("route.mustache", "../", "app-route.js"));
-        supportingFiles.add(new SupportingFile("lookup-load.mustache", ("lib").replace(".", File.separator), "lookup-load.js"));
+        supportingFiles.add(new SupportingFile("model.index.mustache", ("src/model").replace(".", File.separator), "index.js"));
+        supportingFiles.add(new SupportingFile("route.operation.mustache", "./", "routes.js"));
+        supportingFiles.add(new SupportingFile("model.lookup.mustache", ("src/lib").replace(".", File.separator), "lookup-load.js"));
+        supportingFiles.add(new SupportingFile("db.data-init.mustache", "./scripts", "init-data.js"));
+        supportingFiles.add(new SupportingFile("db.data-clean.mustache", "./scripts", "clean-data.js"));
+        supportingFiles.add(new SupportingFile("test.data.mustache", "./test/lib", "test-data.js"));
+        supportingFiles.add(new SupportingFile("e2e.index.mustache", "./test/e2e", "index.e2e.js"));
+
 
         cliOptions.add(new CliOption(SERVER_PORT,
                 "TCP port to listen on."));
@@ -114,7 +120,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
 
     @Override
     public String apiPackage() {
-        return "controller";
+        return "src/controller";
     }
 
     /**
@@ -164,19 +170,39 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         return "api." + toApiName(name);
     }
 
+    @Override
+    public String toApiTestFilename(String name) {
+        return this.toApiFilename(name);
+    }
 
     @Override
     public String apiFilename(String templateName, String tag) {
         String result = super.apiFilename(templateName, tag);
 
-        if (templateName.equals("export.service.mustache")) {
+        if (templateName.equals("service.operation.mustache")) {
             String stringToMatch = "controller" + File.separator;
             String replacement =  implFolder + File.separator;
             result = result.replace(stringToMatch, replacement).replace("api.","service.");
         }
         return result;
     }
+    @Override
+    public String apiTestFilename(String templateName, String tag) {
+        String result = super.apiTestFilename(templateName, tag);
 
+        if (templateName.equals("e2e.operation.mustache")) {
+            String stringToMatch = "controller" + File.separator;
+            String replacement =  implFolder + File.separator + "../../e2e" + File.separator;
+            result = result.replace(stringToMatch, replacement).replace("api.","");
+        }
+
+        if (templateName.equalsIgnoreCase(("unit.service.mustache"))) {
+            String stringToMatch = "controller" + File.separator;
+            String replacement =  implFolder + File.separator ;
+            result = result.replace(stringToMatch, replacement).replace("api.","service.");
+        }
+        return result;
+    }
     protected String initialMediumUnderlineName(String name){
         StringBuilder sb = new StringBuilder();
 
@@ -191,6 +217,20 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public String apiTestFileFolder() {
+        return (this.outputFolder + "/test/unit/controller").replace('/', File.separatorChar);
+    }
+
+    @Override
+    public String modelTestFileFolder() {
+        return (this.outputFolder + "/test/unit/model").replace('/', File.separatorChar);
+    }
+    @Override
+    public String toModelTestFilename(String name) {
+        return initialMediumUnderlineName(name);
     }
 
     @Override
@@ -240,7 +280,12 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
     }
     @Override
     public String modelPackage() {
-        return "model";
+        return "src/model";
+    }
+
+    private void analyzeOperationTest(CodegenOperation operation) {
+        List<PostmanTest> tests = OpenApiTestHelper.analyzeOperationTest(operation);
+        operation.vendorExtensions.put("x-valid-methods", tests);
     }
 
     @Override
@@ -253,6 +298,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
             operation.httpMethod = operation.httpMethod.toLowerCase(Locale.ROOT);
             generatorUtil.handleOperation(operation);
             generatorUtil.handleOperationWithModels(operation, allModels);
+            analyzeOperationTest(operation);
         }
         return objs;
     }
@@ -311,7 +357,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
          * entire object tree available.  If the input file has a suffix of `.mustache
          * it will be processed by the template engine.  Otherwise, it will be copied
          */
-        // supportingFiles.add(new SupportingFile("controller.mustache",
+        // supportingFiles.add(new SupportingFile("e2e.operation.mustache",
         //   "controllers",
         //   "controller.js")
         // );
@@ -380,6 +426,9 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 case "mongo" :
                     this.additionalProperties.put("db_isMongoDB", true);
                     break;
+                case "sqlite" :
+                    this.additionalProperties.put("db_isSqlite", true);
+                    break;
             }
         }
 
@@ -422,6 +471,27 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 }
             }
         }
+    }
+
+    @Override
+    public Map<String, Object> postProcessModels(Map<String, Object> objs) {
+//        Iterator entrys = objs.entrySet().iterator();
+//        while(entrys.hasNext()) {
+//            Entry<String, Object> entry = (Entry)entrys.next();
+//            List<Map<String, Object>> models = (List)entry.getValue();
+//            Iterator var8 = models.iterator();
+//
+//            while(var8.hasNext()) {
+//                Map<String, Object> mo = (Map)var8.next();
+//                CodegenModel cm = (CodegenModel)mo.get("model");
+//                for (CodegenProperty property : cm.allVars) {
+//                    if (property.name.equalsIgnoreCase("id")) {
+//                        property.vendorExtensions.put("x-is-key", true);
+//                    }
+//                }
+//            }
+//        }
+        return objs;
     }
 
     @Override

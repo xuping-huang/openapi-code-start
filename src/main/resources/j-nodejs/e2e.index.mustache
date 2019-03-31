@@ -1,0 +1,19 @@
+/**
+* E2E test of the {{openAPI.info.title}}.
+*/
+
+describe('{{openAPI.info.title}} E2E Test', () => {
+  before(async () => {
+  })
+
+  after(async () => {
+  })
+
+  describe('All resources endpoints', () => {
+  {{#apiInfo}}
+    {{#apis}}
+    require('./{{classname}}.test')
+    {{/apis}}
+  {{/apiInfo}}
+  })
+})

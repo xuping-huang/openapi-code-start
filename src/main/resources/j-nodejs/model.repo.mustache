@@ -1,0 +1,419 @@
+/**
+* Define {{name}} model
+*/
+
+{{#db_isJsonDB}}
+const uuidv1 = require('uuid/v1')
+const path = require('path')
+const openDB = require('json-file-db')
+const BaseModel = require('./base.model')
+{{/db_isJsonDB}}
+{{#db_isDynamoDB}}
+const uuidv1 = require('uuid/v1')
+const { DynamoDb, DynamoItem } = require('../lib/dynamo-db')
+const BaseModel = require('./base.model')
+{{/db_isDynamoDB}}
+{{#db_isSqlite}}
+const Sequelize = require('sequelize')
+const Model = Sequelize.Model
+{{/db_isSqlite}}
+{{#models}}
+{{#model}}
+{{#allVars}}
+{{#isRefObject}}
+const {{refObjectName}} = require('./{{refObjectName}}.model')
+{{/isRefObject}}
+{{/allVars}}
+{{/model}}
+{{/models}}
+
+{{#db_isDynamoDB}}
+let TABLE_NAME = '{{#models}}{{#model}}{{name}}{{/model}}{{/models}}'
+const dynamoItem = new DynamoItem()
+const dynamoTable = dynamoItem.table(TABLE_NAME)
+const dynamoIndexName = dynamoTable.index('lowerXXXXIndex')
+
+{{/db_isDynamoDB}}
+{{#models}}
+{{#model}}
+{{#vendorExtensions}}
+{{#x-table-model}}
+{{#swgdoc}}
+/**
+ * @swagger
+ * definitions:
+ *   {{name}}:
+ *     required:
+         {{#allVars}}
+         {{#required}}
+ *       - {{name}}
+         {{/required}}
+         {{/allVars}}
+ *     properties:
+         {{#allVars}}
+ *       {{name}}:
+           {{#isRefObject}}
+ *         $ref: #/definitions/{{refObjectName}}
+ *         description: {{description}}
+           {{/isRefObject}}
+           {{^isRefObject}}
+           {{#isUuid}}
+ *         type: string
+           {{/isUuid}}
+           {{^isUuid}}
+ *         type: {{baseType}}
+           {{/isUuid}}
+           {{#isListContainer}}
+ *         items:
+           {{#isContainer}}
+ *           type: #/definitions/{{complexType}}
+           {{/isContainer}}
+           {{^isContainer}}
+ *           type: {{complexType}}
+           {{/isContainer}}
+           {{/isListContainer}}
+           {{^isListContainer}}
+           {{#dataFormat}}
+ *         format: {{dataFormat}}
+           {{/dataFormat}}
+           {{#title}}
+ *         title: {{title}}
+           {{/title}}
+           {{#min}}
+ *         min: {{min}}
+           {{/min}}
+           {{#max}}
+ *         max: {{max}}
+           {{/max}}
+           {{#maxLength}}
+ *         maxLength: {{maxLength}}
+           {{/maxLength}}
+           {{#minLength}}
+ *         minLength: {{minLength}}
+           {{/minLength}}
+           {{#minimum}}
+ *         minimum: {{minimum}}
+           {{/minimum}}
+           {{#maximum}}
+ *         maximum: {{maximum}}
+           {{/maximum}}
+           {{#exclusiveMinimum}}
+ *         exclusiveMinimum: {{exclusiveMinimum}}
+           {{/exclusiveMinimum}}
+           {{#exclusiveMaximum}}
+ *         exclusiveMaximum: {{exclusiveMaximum}}
+           {{/exclusiveMaximum}}
+           {{#isEnum}}
+ *         enum:
+           {{#_enum}}
+ *           - {{.}}
+           {{/_enum}}
+           {{/isEnum}}
+           {{/isListContainer}}
+ *         description: {{description}}
+           {{/isRefObject}}
+         {{/allVars}}
+ */
+{{/swgdoc}}
+{{^swgdoc}}
+/**
+ * A class that represents a {{name}}.
+ * @extends {{#db_isSqlite}}Model{{/db_isSqlite}}{{^db_isSqlite}}BaseModel{{/db_isSqlite}}
+ */
+{{/swgdoc}}
+{{#db_isSqlite}}
+class {{name}}Model extends Model {}
+{{name}}Model.init({
+{{#allVars}}
+  {{#isRefObject}}
+  {{/isRefObject}}
+  {{^isRefObject}}
+  {{name}}: {
+    {{#vendorExtensions.x-is-key}}
+    type: Sequelize.UUID,
+    unique: true,
+    allowNull: false
+    {{/vendorExtensions.x-is-key}}
+    {{^vendorExtensions.x-is-key}}
+    type: Sequelize.{{> sub.sequelizeType}},
+    allowNull: true
+    {{/vendorExtensions.x-is-key}}
+  }{{#hasMore}},{{/hasMore}}
+  {{/isRefObject}}
+{{/allVars}}
+}, {
+  tableName: '{{name}}',
+  timestamps: true,
+  createdAt: 'createdOn',
+  updatedAt: 'updatedOn',
+  deletedAt: 'deletedOn',
+  paranoid: true,
+  sequelize
+})
+{{/db_isSqlite}}
+{{^db_isSqlite}}
+class {{name}}Model extends BaseModel {
+  /**
+   * constructor
+   * @param {Object} values - the init value of the class instance.
+   */
+  constructor (values) {
+    super()
+    {{#allVars}}
+    {{#isRefObject}}
+    this.{{name}} = new {{refObjectName}}()
+    {{/isRefObject}}
+    {{^isRefObject}}
+    this.{{name}} = {{#isListContainer}}[]{{/isListContainer}}{{^isListContainer}}undefined{{/isListContainer}}
+    {{/isRefObject}}
+    {{/allVars}}
+
+    if (values) {
+      this.setValue(values)
+    }
+  }
+
+  /**
+   * Set the value.
+   * @param {Object} values - the value of the class instance
+   */
+  setValue (values) {
+    if (values) {
+      {{#allVars}}
+      {{#isRefObject}}
+      this.{{refObjectName}}.setValue(values.{{refObjectName}})
+      {{/isRefObject}}
+      {{^isRefObject}}
+      {{#isListContainer}}
+      this.fillModelArray(this, '{{name}}', values.{{name}}, {{complexType}})
+      {{/isListContainer}}
+      {{^isListContainer}}
+      this.{{name}} = values.{{name}}
+      {{/isListContainer}}
+      {{/isRefObject}}
+      {{/allVars}}
+      {{#vendorExtensions}}
+        {{#x-insentive-property}}
+      if (values.{{x-insentive-property}}) {
+        this.lower{{x-insentive-property}} = values.{{x-insentive-property}}.toLowerCase().trim()
+      }
+        {{/x-insentive-property}}
+      {{/vendorExtensions}}
+    }
+  }
+  {{#db_isJsonDB}}
+
+  /**
+   * load lookup value of {{name}}
+   * @param {Object} search - the search condition
+   * @return {Object} load result
+   */
+  static async load(search) {
+    const filePath = path.join(__dirname, '../../db/{{classFilename}}.json')
+    const db = openDB(filePath)
+    return new Promise((resolve, reject) => {
+      db.get((err, datas) => {
+        if (err) return reject(err)
+        {{#hasFilterProperty}}
+        if (search && search.trim().length > 0) {
+          const filter = search.trim().toLowerCase();
+          datas = datas.filter((data) => {
+            const result = {{#allVars}}{{#needFilter}}{{^isFirstFilter}}|| {{/isFirstFilter}}this.isInclude(data.{{name}}, filter){{/needFilter}}
+              {{/allVars}}
+            return result
+          })
+        }
+        {{/hasFilterProperty}}
+        resolve(datas)
+      });
+    });
+  }
+  {{/db_isJsonDB}}
+
+  /**
+   * Generate new id.
+   * @returns {Uuid} the generated id
+   */
+  newId () {
+    return uuidv1()
+  }
+
+{{#db_isDynamoDB}}
+  /**
+   * Returns the contents of the item to save.
+   * @returns {Object} the content need to save
+   */
+  saveItem () {
+    return {
+  {{#vendorExtensions}}
+    {{#x-insentive-property}}
+      lower{{x-insentive-property}}: this.lower{{x-insentive-property}},
+    {{/x-insentive-property}}
+  {{/vendorExtensions}}
+    {{#allVars}}
+      {{#isRefObject}}
+      {{refObjectName}}: this.{{refObjectName}}{{#hasMore}},{{/hasMore}}
+      {{/isRefObject}}
+      {{^isRefObject}}
+      {{name}}: this.{{name}}{{#hasMore}},{{/hasMore}}
+      {{/isRefObject}}
+      {{/allVars}}
+    }
+  }
+
+  /**
+  * Return item content without lowercase property.
+  * @returns {Object} the content need to be returned
+  */
+  viewItem () {
+    let item = this.saveItem()
+  {{#vendorExtensions}}
+    {{#x-insentive-property}}
+    delete item.lower{{x-insentive-property}}
+    {{/x-insentive-property}}
+  {{/vendorExtensions}}
+    return item
+  }
+
+  /**
+   * Returns the item save option for the DynamoDB.
+   * @param {Object} item - the item to save
+   * @returns {Object} the content of the dynamo item to save
+   */
+  saveOption (item) {
+    return dynamoTable.item(item).option()
+  }
+
+  /**
+   * Save {{name}}.
+   * @returns {Object} the saved {{name}}
+   */
+  async save () {
+    if (!this.id) {
+      this.id = this.newId()
+    }
+    const options = this.saveOption(this.saveItem())
+    await DynamoDb.put(options).promise()
+    return Promise.resolve(this.viewItem())
+  }
+
+  /**
+   * Search {{name}} by conditions
+   * @param {Object} query - the search condition
+   * @return {Object} a collection of {{name}}
+   */
+  async search (query) {
+  {{#vendorExtensions}}
+    {{^x-search-page}}
+    let dynamoOption = dynamoTable
+    {{/x-search-page}}
+    {{#x-search-page}}
+    let dynamoOption = dynamoTable.limit(query.perPage)
+    {{/x-search-page}}
+    if (query) {
+      {{#pathParams}}
+      if (query.hasOwnProperty('{{baseName}}')) {
+        dynamoOption = dynamoOption.and().equalFind('{{baseName}}', query.{{baseName}})
+      }
+      {{/pathParams}}
+      {{#queryParams}}
+      if (query.hasOwnProperty('{{baseName}}')) {
+        dynamoOption = dynamoOption.and().equalFind('{{baseName}}', query.{{baseName}})
+      }
+      {{/queryParams}}
+      {{#vendorExtensions}}
+        {{#x-insentive-property}}
+      if (query.hasOwnProperty('{{x-insentive-property}}')) {
+        dynamoOption = dynamoOption.and().contains('lower{{x-insentive-property}}', query.{{x-insentive-property}}.toLowerCase())
+      }
+        {{/x-insentive-property}}
+      {{/vendorExtensions}}
+    }
+    {{^x-search-page}}
+    const data = this.searchToEnd(DynamoDb, dynamoOption)
+    return Promise.resolve(data)
+    {{/x-search-page}}
+    {{#x-search-page}}
+    const options = dynamoOption.projectionAll().option()
+    {{#vendorExtensions}}
+      {{#x-insentive-property}}
+    const total = await this.getTotal(DynamoDb, dynamoIndexName, 'lower{{x-insentive-property}}', dynamoOption)
+      {{/x-insentive-property}}
+      {{^x-insentive-property}}
+    const total = await this.getTotal(DynamoDb, dynamoIndexName, 'XXXX', dynamoOption)
+      {{/x-insentive-property}}
+    {{/vendorExtensions}}
+    let data = {}
+    if (query.page === 1) {
+      data = await DynamoDb.scan(options).promise()
+    } else {
+      data = await this.pageSearch(DynamoDb, query.page, query.perPage, total, options)
+    }
+
+    const retData = merge(data, { Page: query.page, PerPage: query.perPage, Total: total })
+    return Promise.resolve(retData)
+    {{/x-search-page}}
+  {{/vendorExtensions}}
+  }
+
+  /**
+  * Get all resource role.
+  * @returns {Array} a collection of all {{name}} in the table
+  */
+  async all () {
+    return this.search()
+  }
+
+  /**
+   * Find {{name}} by id
+   * @param {String} id - the {{name}} id
+   * @return {Object} the {{name}} obtained
+   */
+  async findById (id) {
+    const options = dynamoTable.key({ id }).option()
+    const data = await DynamoDb.get(options).promise()
+    return Promise.resolve(data)
+  }
+
+
+  /**
+  * Check if a {{name}} with the same name(case insensitive) exists.
+  * @returns {Boolean} whether there is a {{name}} with the same name
+  */
+  async existName () {
+    {{#vendorExtensions}}
+    {{#x-insentive-property}}
+    const option = dynamoIndexName.equalFind('lower{{x-insentive-property}}', this.lower{{x-insentive-property}}).projectionAppend(['id']).option()
+    {{/x-insentive-property}}
+    {{^x-insentive-property}}
+    const option = dynamoIndexName.equalFind('name', this.name).projectionAppend(['id']).option()
+    {{/x-insentive-property}}
+    {{/vendorExtensions}}
+    const data = await DynamoDb.scan(option).promise()
+    let exist = false
+    if (data && data.Items && data.Items.length > 0) {
+      const justMe = data.Items.every(item => {
+        return item.id === this.id
+      })
+      exist = !justMe
+    }
+    return Promise.resolve(exist)
+  }
+
+  /**
+  * Delete {{name}} by key.
+  * @returns {Object} the deleted {{name}}
+  */
+  async delete () {
+    const dynamoItemOption = dynamoTable.key({ id: this.id })
+    const data = await DynamoDb.delete(dynamoItemOption.option()).promise()
+    return Promise.resolve(data)
+  }
+  {{/db_isDynamoDB}}
+}
+{{/db_isSqlite}}
+module.exports = {{name}}Model
+{{/x-table-model}}
+{{/vendorExtensions}}
+{{/model}}
+{{/models}}

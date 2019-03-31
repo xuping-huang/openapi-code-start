@@ -1,0 +1,73 @@
+/*
+* Unit testing of {{baseName}} Service with mocks
+*/
+
+const chai = require('chai')
+const expect = chai.expect
+const chaiAsPromised = require('chai-as-promised')
+const sinonChai = require('sinon-chai')
+chai.use(chaiAsPromised)
+chai.use(sinonChai)
+chai.should()
+
+const error = require('../../../src/lib/app-error')
+const model = require('../../../src/model/index')
+const service = require('../../../src/service/service.{{classname}}')
+const testData = require('../../lib/test-data')
+const checker = require('../../lib/test-helper')
+
+describe('{{baseName}} Service Unit Test', () => {
+  beforeEach(() => {
+  })
+
+  afterEach(() => {
+  })
+
+  {{#operations}}
+  {{#operation}}
+  describe('{{operationId}} function test', () => {
+  {{#vendorExtensions}}
+  {{#x-valid-methods}}
+    it('{{title}}', async () => {
+      const body = testData.{{baseName}}.createBody()
+    {{#isFailValidate}}
+      try {
+      {{#isCreate}}
+        const res = await service.{{operationId}}(body)
+        // should...
+      {{/isCreate}}
+      {{#isDeleteById}}
+        const res = await service.{{operationId}}(body)
+        // should...
+      {{/isDeleteById}}
+      {{#isGetById}}
+        const res = await service.{{operationId}}(body)
+        // should...
+      {{/isGetById}}
+      {{#isSearch}}
+        const res = await service.{{operationId}}(body)
+        // should...
+      {{/isSearch}}
+      {{#isUpdateById}}
+        const res = await service.{{operationId}}(body)
+        // should...
+      {{/isUpdateById}}
+        throw new Error('The expected error did not occur.')
+      } catch (err) {
+        should.equal(err.status, {{statusCode}})
+        should.equal(_.get(err, 'response.body.message'), `message required`)
+      }
+    {{/isFailValidate}}
+    {{^isFailValidate}}
+      const res = await service.{{operationId}}(body)
+      // should ...
+      await checker.assert{{baseName}}(result.id, result)
+    {{/isFailValidate}}
+    })
+
+  {{/x-valid-methods}}
+  {{/vendorExtensions}}
+  })
+  {{/operation}}
+  {{/operations}}
+})

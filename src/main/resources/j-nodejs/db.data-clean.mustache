@@ -1,0 +1,27 @@
+/**
+* Initialize database tables. All data will be deleted.
+*/
+const logger = require('../src/lib/logger')
+const { {{> sub.modelNameLine}} } = require('../src/model/index')
+
+logger.info('Initialize database.')
+
+let datas
+const cleanData = async () => {
+  {{#models}}
+  {{#model}}
+  {{#vendorExtensions}}
+  {{#x-table-model}}
+  dataColl = await new {{name}}Model().all()
+  for (const data of dataColl) {
+    const model = new {{name}}Model(data)
+    await model.delete()
+  }
+
+  {{/x-table-model}}
+  {{/vendorExtensions}}
+  {{/model}}
+  {{/models}}
+}
+
+module.exports.cleanData = cleanData

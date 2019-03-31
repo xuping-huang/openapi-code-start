@@ -1,0 +1,23 @@
+/*
+* Test data for all resources
+*/
+
+module.exports.Host = `http://localhost:${config.PORT}`
+
+module.exports.Token = {
+  admin: '',
+  user: '',
+  copilot: '',
+  m2m: '',
+  expired: ''
+}
+
+{{#apiInfo}}
+  {{#apis}}
+module.exports.{{baseName}} = {
+  createBody: () => {
+    return {}
+  }
+}
+  {{/apis}}
+{{/apiInfo}}

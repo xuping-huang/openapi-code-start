@@ -1,0 +1,77 @@
+/**
+* E2E test of the {{baseName}}.
+*/
+
+const _ = require('lodash')
+const config = require('config')
+const should = require('should')
+const testData = require('../lib/test-data')
+const checker = require('../lib/test-helper')
+const service = require('../../src/service/service.{{classname}}')
+const token = testData.Token
+const host = testData.Host
+
+{{#operations}}
+const {{classname}}Id = 'fe6d0a58-ce7d-4521-8501-b8132b1c0391'
+const {{classname}}NotFoundId = '11111111-ce7d-4521-8501-b8132b1c0391'
+{{/operations}}
+
+module.exports = describe('{{baseName}} resource test', () => {
+  before(async () => {
+  })
+
+  {{#operations}}
+    {{#operation}}
+  describe('{{operationIdSnakeCase}}', () => {
+    const {{operationId}}Url = `${host}{{path}}`
+    const {{operationId}}400Url = `${host}{{path}}`
+    const {{operationId}}404Url = `${host}{{path}}`
+
+    {{#vendorExtensions}}
+      {{#x-valid-methods}}
+    it('{{title}}', async () => {
+      {{^isGetById}}{{^isSearch}}{{^isDeleteById}}
+      const body = testData.{{baseName}}.createBody()
+      {{/isDeleteById}}{{/isSearch}}{{/isGetById}}
+      {{#isFailValidate}}
+      try {
+        {{#isCreate}}
+        const res = await checker.postRequest({{operationId}}Url, body{{#userToken}}, token.XXX{{/userToken}})
+        // should...
+        {{/isCreate}}
+        {{#isDeleteById}}
+        const res = await checker.deleteRequest({{operationId}}Url{{#userToken}}, token.XXX{{/userToken}})
+        // should...
+        {{/isDeleteById}}
+        {{#isGetById}}
+        const res = await checker.getRequest({{operationId}}Url{{#userToken}}, token.XXX{{/userToken}})
+        // should...
+        {{/isGetById}}
+        {{#isSearch}}
+        const res = await checker.getRequest({{operationId}}Url{{#userToken}}, token.XXX{{/userToken}})
+        // should...
+        {{/isSearch}}
+        {{#isUpdateById}}
+        const res = await checker.putRequest({{operationId}}Url, body{{#userToken}}, token.XXX{{/userToken}})
+        // should...
+        {{/isUpdateById}}
+        throw new Error('The expected error did not occur.')
+      } catch (err) {
+        should.equal(err.status, {{statusCode}})
+        should.equal(_.get(err, 'response.body.message'), `message required`)
+      }
+      {{/isFailValidate}}
+      {{^isFailValidate}}
+      const res = await checker.postRequest({{operationId}}Url, body{{#userToken}}, token.XXX{{/userToken}})
+      should.equal(res.status, {{statusCode}})
+      // should ...
+      await checker.assert{{baseName}}(result.id, result)
+      {{/isFailValidate}}
+    })
+
+      {{/x-valid-methods}}
+    {{/vendorExtensions}}
+  })
+    {{/operation}}
+  {{/operations}}
+})

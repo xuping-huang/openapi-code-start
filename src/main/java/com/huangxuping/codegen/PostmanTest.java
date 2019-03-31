@@ -13,7 +13,9 @@ public class PostmanTest {
     public Boolean isUpdateById = false;
     public Boolean isDeleteById = false;
     public Boolean isGetById = false;
+    public Boolean isSearch = true;
     public Boolean hasMore = true;
+    public Boolean isFailValidate = false;
     public List<PostmanPathItem> paths;
 
     public PostmanTest(String title) {
@@ -22,6 +24,10 @@ public class PostmanTest {
             statusCode = title.substring(8, 11);
             if (statusCode.equalsIgnoreCase("201")) {
                 this.isCreate = true;
+                this.isSearch = false;
+            }
+            if ( title.startsWith("failure") ) {
+              this.isFailValidate = true;
             }
         }
         this.uuid = UUID.randomUUID().toString();
@@ -46,18 +52,21 @@ public class PostmanTest {
     static public PostmanTest getDeleteSuccessTests() {
         PostmanTest ret = new PostmanTest(("success 200 - deleted by id"));
         ret.isDeleteById = true;
+        ret.isSearch = false;
         return ret;
     }
 
     static public PostmanTest getUpdateSuccessTests() {
         PostmanTest ret = new PostmanTest("success 200 - updated by id");
         ret.isUpdateById = true;
+        ret.isSearch = false;
         return ret;
     }
 
     static public PostmanTest getFindByIdSuccessTest() {
         PostmanTest ret = new PostmanTest("success 200 - find by id");
         ret.isGetById = true;
+        ret.isSearch = false;
         return ret;
     }
 

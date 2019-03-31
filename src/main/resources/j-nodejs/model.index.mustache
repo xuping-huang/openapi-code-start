@@ -3,14 +3,22 @@
 */
 {{#models}}
 {{#model}}
+{{#vendorExtensions}}
+{{#x-table-model}}
 const {{name}}Model = require('./{{classFilename}}.model')
+{{/x-table-model}}
+{{/vendorExtensions}}
 {{/model}}
 {{/models}}
 
 module.exports = {
 {{#models}}
 {{#model}}
+  {{#vendorExtensions}}
+    {{#x-table-model}}
   {{name}}Model,
+    {{/x-table-model}}
+  {{/vendorExtensions}}
 {{/model}}
 {{/models}}
 }

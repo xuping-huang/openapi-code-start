@@ -1,0 +1,107 @@
+/**
+* Contains all routes
+*/
+
+const _ = require('lodash')
+const { Role } = require('./constants')
+
+{{#openAPI}}
+{{#swgdoc}}
+const swaggerJSDoc = require('swagger-jsdoc')
+
+/**
+* Swagger-jsdoc
+*/
+const swaggerDefinition = {
+  info: {
+    // API informations (required)
+    title: '{{project.name}}', // Title (required)
+    version: '{{project.version}}', // Version (required)
+    description: '{{project.description}}', // Description (optional)
+  },
+  host: `${config.host}:${config.port}`, // Host (optional)
+  basePath: `${basePath}`, // Base path (optional)
+}
+
+// Options for the swagger docs
+const options = {
+  // Import swaggerDefinitions
+  swaggerDefinition,
+  // Path to the API docs
+  // Note that this path is relative to the current directory from which the Node.js is ran,
+  // not the application itself.
+  apis: ['./routes.js', './controller/*.js', './model/*.js'],
+}
+
+/**
+ * @swagger
+ * tags:
+ *   - name: auth
+ *     description: 'Certification for request user'
+ *   - name: user
+ *     description: 'Request with user resource'
+ */
+
+// Initialize swagger-jsdoc -> returns validated swagger spec in json format
+const swaggerSpec = swaggerJSDoc(options)
+
+// Serve swagger docs the way you like (Recommendation: swagger-tools)
+router.get('/swagger', (req, res) => {
+  res.setHeader('Content-Type', 'application/json')
+  res.send(swaggerSpec)
+})
+
+/**
+ * @swagger
+ * tags:
+ {{#tags}}
+ *   - name: {{name}}
+ *     description: {{description}}
+ {{/tags}}
+ */
+
+{{/swgdoc}}
+{{/openAPI}}
+{{#apiInfo}}
+{{#apis}}
+{{#operations}}
+const ALL_{{classVarName}} = 'all:{{classVarName}}'
+{{/operations}}
+{{/apis}}
+{{/apiInfo}}
+
+const routes = {
+  {{#apiInfo}}
+  {{#apis}}
+  {{#operations}}
+  {{#operation}}
+  '{{path}}': {
+    {{httpMethod}}: {
+      operation: '{{operationId}}',
+      controller = '{{classFilename}}',
+      {{#userToken}}
+      auth: 'jwt',
+      {{/userToken}}
+      {{#m2mToken}}
+      scopes: ['{{> sub.httpMethod2ScopePrefix}}:{{classVarName}}', ALL_{{classVarName}}],
+      {{/m2mToken}}
+      roles: [Role.Admin]
+    }
+  },
+{{/operation}}
+{{/operations}}
+{{/apis}}
+{{/apiInfo}}
+}
+
+// Set the same value properties between different routes
+_.each(routes, (verbs, path) => {
+  _.each(verbs, (def, verb) => { // eslint-disable-line
+    // def.auth = 'jwt'
+    if (path.startsWith('/')) {
+      // def.controller = 'api.'
+    }
+  })
+})
+
+module.exports = routes
