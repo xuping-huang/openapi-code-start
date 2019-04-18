@@ -65,7 +65,9 @@ router.get('/swagger', (req, res) => {
 {{#apiInfo}}
 {{#apis}}
 {{#operations}}
+  {{#m2mToken}}
 const ALL_{{classVarName}} = 'all:{{classVarName}}'
+  {{/m2mToken}}
 {{/operations}}
 {{/apis}}
 {{/apiInfo}}
@@ -78,7 +80,7 @@ const routes = {
   '{{path}}': {
     {{httpMethod}}: {
       operation: '{{operationId}}',
-      controller = '{{classFilename}}',
+      controller: '{{classFilename}}',
       {{#userToken}}
       auth: 'jwt',
       {{/userToken}}
@@ -97,8 +99,8 @@ const routes = {
 // Set the same value properties between different routes
 _.each(routes, (verbs, path) => {
   _.each(verbs, (def, verb) => { // eslint-disable-line
-    // def.auth = 'jwt'
     if (path.startsWith('/')) {
+      // def.auth = 'jwt'
       // def.controller = 'api.'
     }
   })

@@ -32,6 +32,9 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
     protected String defaultServerPort = "8080";
     public static final String NEED_SWAGGER_DOC = "swgdoc";
     public static final String DATABASE_TYPE = "db";
+    public static final String M2M_TOKEN = "m2mToken";
+    public static final String USER_TOKEN = "userToken";
+
     protected String exportedName;
     private GeneratorUtil generatorUtil = new GeneratorUtil();
 
@@ -102,7 +105,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         additionalProperties.put("implFolder", implFolder);
 
         supportingFiles.add(new SupportingFile("model.index.mustache", ("src/model").replace(".", File.separator), "index.js"));
-        supportingFiles.add(new SupportingFile("route.operation.mustache", "./", "routes.js"));
+        supportingFiles.add(new SupportingFile("route.operation.mustache", "./src", "routes.js"));
         supportingFiles.add(new SupportingFile("model.lookup.mustache", ("src/lib").replace(".", File.separator), "lookup-load.js"));
         supportingFiles.add(new SupportingFile("db.data-init.mustache", "./scripts", "init-data.js"));
         supportingFiles.add(new SupportingFile("db.data-clean.mustache", "./scripts", "clean-data.js"));
@@ -116,6 +119,12 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 "need swagger doc comment."));
         cliOptions.add(new CliOption(DATABASE_TYPE,
                 "database type."));
+        cliOptions.add(new CliOption(M2M_TOKEN,
+                "whether need machine token"));
+        cliOptions.add(new CliOption(USER_TOKEN,
+                "whether need user token"));
+
+        this.setSkipOverwrite(false);
     }
 
     @Override
@@ -303,13 +312,19 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         return objs;
     }
 
+
+
     @SuppressWarnings("unchecked")
     private static List<Map<String, Object>> getOperations(Map<String, Object> objs) {
-        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> apiInfo = (Map<String, Object>) objs.get("apiInfo");
         List<Map<String, Object>> apis = (List<Map<String, Object>>) apiInfo.get("apis");
         for (Map<String, Object> api : apis) {
-            result.add((Map<String, Object>) api.get("operations"));
+            Map<String, Object> ops = (Map<String, Object>) api.get("operations");
+            List<CodegenOperation> codeOps = (List<CodegenOperation>) ops.get("operation");
+            codeOps.sort(Comparator.comparing(e -> e.path));
+
+            result.add(ops);
         }
         return result;
     }
@@ -400,10 +415,17 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         }
         this.additionalProperties.put(NEED_SWAGGER_DOC, needSwaggerDoc);
 
-        if (additionalProperties.containsKey(NEED_SWAGGER_DOC)) {
-            needSwaggerDoc = Boolean.parseBoolean(additionalProperties.get(NEED_SWAGGER_DOC).toString());
+        boolean needM2MToken = false;
+        if (additionalProperties.containsKey(M2M_TOKEN)) {
+            needM2MToken = Boolean.parseBoolean(additionalProperties.get(M2M_TOKEN).toString());
         }
-        this.additionalProperties.put(NEED_SWAGGER_DOC, needSwaggerDoc);
+        this.additionalProperties.put(M2M_TOKEN, needM2MToken);
+
+        boolean needUserToken = false;
+        if (additionalProperties.containsKey(USER_TOKEN)) {
+            needUserToken = Boolean.parseBoolean(additionalProperties.get(USER_TOKEN).toString());
+        }
+        this.additionalProperties.put(USER_TOKEN, needUserToken);
 
         if (additionalProperties.containsKey(DATABASE_TYPE)) {
             String dbType = additionalProperties.get(DATABASE_TYPE).toString().toLowerCase().trim();

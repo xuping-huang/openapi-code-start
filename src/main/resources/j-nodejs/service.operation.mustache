@@ -3,142 +3,22 @@
 */
 
 const Joi = require('joi')
+const merge = require('merge-deep')
+const uuidv4 = require('uuid/v4')
 const error = require('../lib/app-error')
-const { {{returnType}}Model } = require('../model/index')
+const Model = require('../model/index')
+{{#db_isSqlite}}
+const sequelize = require('../lib/db').sequelize
+{{/db_isSqlite}}
 
 {{#operations}}
 {{#operation}}
-/**
- * {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}Find all {{returnType}} data in the system.{{/isListContainer}}{{^isListContainer}}Find a {{returnType}} by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}Create a new {{returnType}} in the system.{{/x-post-method}}{{#x-patch-method}}Update partial content of a {{returnType}} in the system.{{/x-patch-method}}{{#x-put-method}}Update a {{returnType}} in the system.{{/x-put-method}}{{#x-delete-method}}Delete a {{returnType}} in the system.{{/x-delete-method}}{{/vendorExtensions}}
- * @param {Object} params - {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}the search conditions{{/isListContainer}}{{^isListContainer}}the {{returnType}} id{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the contents of a new {{returnType}}{{/x-post-method}}{{#x-put-method}}the obj to update{{/x-put-method}}{{#x-patch-method}}the property of {{returnType}} to update{{/x-patch-method}}{{#x-delete-method}}the delete conditions{{/x-delete-method}}{{/vendorExtensions}}
- {{#userToken}}
-   {{#x-post-method}}
- * @param {Object} currentUser - the user who perform operation
-   {{/x-post-method}}
-   {{#x-put-method}}
- * @param {Object} currentUser - the user who perform operation
-   {{/x-put-method}}
-   {{#x-patch-method}}
- * @param {Object} currentUser - the user who perform operation
-   {{/x-patch-method}}
- {{/userToken}}
- * @returns {{#vendorExtensions}}{{^x-get-method}}{Object}{{/x-get-method}}{{#x-get-method}}{{#isListContainer}}{Array}{{/isListContainer}}{{^isListContainer}}{Object}{{/isListContainer}}{{/x-get-method}}{{/vendorExtensions}} {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}a collection of {{returnType}}{{/isListContainer}}{{^isListContainer}}the {{returnType}} obtained by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the created {{returnType}}{{/x-post-method}}{{#x-put-method}}the updated {{returnType}}{{/x-put-method}}{{#x-patch-method}}the updated {{returnType}}{{/x-patch-method}}{{#x-delete-method}}the deleted {{returnType}}{{/x-delete-method}}{{/vendorExtensions}}
- **/
-async function {{nickname}} (params{{#userToken}}{{#vendorExtensions}}{{#x-post-method}}, currentUser{{/x-post-method}}{{#x-put-method}}, currentUser{{/x-put-method}}{{#x-patch-method}}, currentUser{{/x-patch-method}}{{/vendorExtensions}}{{/userToken}}) {
-  try {
-    {{#vendorExtensions}}
-    {{#x-post-method}}
-    const now = new Date()
-    {{#userToken}}const userId = currentUser.isMachine ? currentUser.sub : currentUser.userId{{/userToken}}
-    const mergeData = merge(params, {
-      created: now.toISOString(),
-      {{#userToken}}
-      createdBy: userId,
-      {{/userToken}}
-      updated: now.toISOString(){{#userToken}},{{/userToken}}
-      {{#userToken}}
-      updatedBy: userId
-      {{/userToken}}
-    })
-    const model = new {{returnType}}Model(mergeData)
-    const data = await model.save()
-    {{/x-post-method}}
-    {{#x-get-method}}
-    {{#isListContainer}}
-    const model = new {{returnType}}Model()
-    const data = await model.search(params)
-    {{/isListContainer}}
-    {{^isListContainer}}
-    const model = new {{returnType}}Model()
-    const data = await model.findById(params.id)
-    if (!data) {
-      return Promise.reject(new error.NotFoundError(`{{returnType}} id '${params.id}' not found`))
-    }
-    {{/isListContainer}}
-    {{/x-get-method}}
-    {{#x-put-method}}
-    let model = new {{returnType}}Model()
-    const oldObj = await model.findById(params.id)
-    if (!oldObj) {
-      return Promise.reject(new error.NotFoundError(`{{returnType}} id '${params.id}' not found`))
-    }
-
-    const now = new Date()
-    const mergeData = merge(params, {
-      updated: now.toISOString(){{#userToken}},{{/userToken}}
-      {{#userToken}}
-      updatedBy: currentUser.isMachine ? currentUser.sub : currentUser.userId
-      {{/userToken}}
-    })
-    model = new {{returnType}}Model(mergeData)
-    const data = await model.save()
-    {{/x-put-method}}
-    {{#x-patch-method}}
-    let model = new {{returnType}}Model()
-    const oldObj = await model.findById(params.id)
-    if (!oldObj) {
-      return Promise.reject(new error.NotFoundError(`{{returnType}} id '${params.id}' not found`))
-    }
-
-    const now = new Date()
-    const mergeData = merge(oldObj, params, {
-      updated: now.toISOString(){{#userToken}},{{/userToken}}
-      {{#userToken}}
-      updatedBy: currentUser.isMachine ? currentUser.sub : currentUser.userId
-      {{/userToken}}
-    })
-    model = new {{returnType}}Model(mergeData)
-    const data = await model.save()
-    {{/x-patch-method}}
-    {{#x-delete-method}}
-    const model = new {{returnType}}Model(params)
-    const data = await model.delete()
-    {{/x-delete-method}}
-    {{/vendorExtensions}}
-    return Promise.resolve(data)
-  } catch (err) {
-    return Promise.reject(err)
-  }
-}
-
-{{nickname}}.schema = {
-  {{#userToken}}
-    {{#vendorExtensions}}
-      {{#x-post-method}}
-  currentUser: Joi.any(),
-      {{/x-post-method}}
-      {{#x-put-method}}
-  currentUser: Joi.any(),
-      {{/x-put-method}}
-      {{#x-patch-method}}
-  currentUser: Joi.any(),
-      {{/x-patch-method}}
-    {{/vendorExtensions}}
-  {{/userToken}}
-  params: Joi.object().keys({
-    {{#pathParams}}
-    {{> sub.joiParam}}
-    {{/pathParams}}
-    {{#bodyParams}}
-      {{#isModel}}
-        {{#vendorExtensions}}
-          {{#x-refModel}}
-            {{#vars}}
-    {{> sub.joiParam}}
-            {{/vars}}
-          {{/x-refModel}}
-        {{/vendorExtensions}}
-      {{/isModel}}
-      {{^isModel}}
-    {{> sub.joiParam}}
-      {{/isModel}}
-    {{/bodyParams}}
-    {{#queryParams}}
-    {{> sub.joiParam}}
-    {{/queryParams}}
-  })
-}
-
+{{#db_isDynamoDB}}
+{{> sub.service.operation.dynamo}}
+{{/db_isDynamoDB}}
+{{#db_isSqlite}}
+{{> sub.service.operation.sqlite}}
+{{/db_isSqlite}}
 {{/operation}}
 {{/operations}}
 module.exports = {

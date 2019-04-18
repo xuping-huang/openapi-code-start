@@ -60,7 +60,7 @@ describe('{{baseName}} Unit Test', () => {
       const reqParam = merge(req, testData.{{baseName}})
       const data = await controller.{{nickname}}(reqParam, res, next)
       return Promise.all([
-        {{nickname}}Stub.should.have.been.calledOnce
+        {{nickname}}Stub.should.have.been.calledOnce,
         testHelper.assert{{baseName}}(data, testData.{{baseName}})
       ])
     })

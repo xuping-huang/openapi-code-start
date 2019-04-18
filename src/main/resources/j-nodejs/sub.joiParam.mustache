@@ -1,57 +1,53 @@
-{{#isLong}}
-{{baseName}}: Joi.number().integer(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isLong}}
-{{#isInteger}}
-{{baseName}}: Joi.number().integer(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isInteger}}
-{{#isDouble}}
-{{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isDouble}}
-{{#isFloat}}
-{{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isFloat}}
-{{#isNumber}}
-{{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isNumber}}
-{{#isNumeric}}
-{{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isNumeric}}
-{{#isString}}
-{{baseName}}: Joi.string().trim(){{#minLength}}.min({{minLength}}){{/minLength}}{{#maxLength}}.max({{maxLength}}){{/maxLength}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isString}}
-{{#isBoolean}}
-{{baseName}}: JoiBoolean.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isBoolean}}
-{{#isDate}}
-{{baseName}}: Joi.date().iso().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isDate}}
-{{#isDateTime}}
-{{baseName}}: Joi.date().iso().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isDateTime}}
-{{#isUuid}}
-{{baseName}}: Joi.string().trim().lowercase().uuid().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isUuid}}
-{{#isEnum}}
-{{baseName}}: Joi.string().uppercase().valid(['ONE', 'TWO']).{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isEnum}}
-{{#isByteArray}}
-{{baseName}}: Joi.array().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isByteArray}}
-{{#isBinary}}
-{{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isBinary}}
-{{#isEmail}}
-{{baseName}}: Joi.string().email().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isEmail}}
-{{#isFreeFormObject}}
-{{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isFreeFormObject}}
-{{#isListContainer}}
-{{baseName}}: Joi.array().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isListContainer}}
-{{#isMapContainer}}
-{{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isMapContainer}}
-{{#isFile}}
-{{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
-{{/isFile}}
+  {{#isLong}}
+  {{baseName}}: Joi.number().integer(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isLong}}
+  {{#isInteger}}
+  {{baseName}}: Joi.number().integer(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isInteger}}
+  {{#isDouble}}
+  {{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isDouble}}
+  {{#isFloat}}
+  {{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isFloat}}
+  {{#isNumber}}
+  {{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isNumber}}
+  {{#isString}}
+  {{^isEnum}}
+  {{baseName}}: Joi.string().trim(){{#minLength}}.min({{minLength}}){{/minLength}}{{#maxLength}}.max({{maxLength}}){{/maxLength}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isEnum}}
+  {{#isEnum}}
+  {{baseName}}: Joi.string().uppercase().valid(['ONE', 'TWO']).{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isEnum}}
+  {{/isString}}
+  {{#isBoolean}}
+  {{baseName}}: JoiBoolean.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isBoolean}}
+  {{#isDate}}
+  {{baseName}}: Joi.date().iso().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isDate}}
+  {{#isDateTime}}
+  {{baseName}}: Joi.date().iso().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isDateTime}}
+  {{#isUuid}}
+  {{baseName}}: Joi.string().trim().lowercase().uuid().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isUuid}}
+   {{#isByteArray}}
+  {{baseName}}: Joi.array().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isByteArray}}
+  {{#isEmail}}
+  {{baseName}}: Joi.string().email().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isEmail}}
+  {{#isFreeFormObject}}
+  {{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isFreeFormObject}}
+  {{#isListContainer}}
+  {{baseName}}: Joi.array().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isListContainer}}
+  {{#isMapContainer}}
+  {{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isMapContainer}}
+  {{#isFile}}
+  {{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{/isFile}}

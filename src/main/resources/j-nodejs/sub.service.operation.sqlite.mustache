@@ -1,0 +1,138 @@
+/**
+* {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}Find all {{classname}} data in the system.{{/isListContainer}}{{^isListContainer}}Find a {{classname}} by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}Create a new {{classname}} in the system.{{/x-post-method}}{{#x-patch-method}}Update partial content of a {{classname}} in the system.{{/x-patch-method}}{{#x-put-method}}Update a {{returnBaseType}} in the system.{{/x-put-method}}{{#x-delete-method}}Delete a {{classname}} in the system.{{/x-delete-method}}{{/vendorExtensions}}
+* @param {Object} params - {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}the search conditions{{/isListContainer}}{{^isListContainer}}the {{classname}} id{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the contents of a new {{classname}}{{/x-post-method}}{{#x-put-method}}the obj to update{{/x-put-method}}{{#x-patch-method}}the property of {{classname}} to update{{/x-patch-method}}{{#x-delete-method}}the delete conditions{{/x-delete-method}}{{/vendorExtensions}}
+{{#userToken}}
+  {{#x-post-method}}
+    * @param {Object} currentUser - the user who perform operation
+  {{/x-post-method}}
+  {{#x-put-method}}
+    * @param {Object} currentUser - the user who perform operation
+  {{/x-put-method}}
+  {{#x-patch-method}}
+    * @param {Object} currentUser - the user who perform operation
+  {{/x-patch-method}}
+{{/userToken}}
+* @returns {{#vendorExtensions}}{{^x-get-method}}{Object}{{/x-get-method}}{{#x-get-method}}{{#isListContainer}}{Array}{{/isListContainer}}{{^isListContainer}}{Object}{{/isListContainer}}{{/x-get-method}}{{/vendorExtensions}} {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}a collection of {{classname}}{{/isListContainer}}{{^isListContainer}}the {{classname}} obtained by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the created {{classname}}{{/x-post-method}}{{#x-put-method}}the updated {{classname}}{{/x-put-method}}{{#x-patch-method}}the updated {{classname}}{{/x-patch-method}}{{#x-delete-method}}the deleted {{classname}}{{/x-delete-method}}{{/vendorExtensions}}
+**/
+async function {{nickname}} (params{{#userToken}}{{#vendorExtensions}}{{#x-post-method}}, currentUser{{/x-post-method}}{{#x-put-method}}, currentUser{{/x-put-method}}{{#x-patch-method}}, currentUser{{/x-patch-method}}{{/vendorExtensions}}{{/userToken}}) {
+  {{#vendorExtensions}}
+  {{^x-get-method}}
+  const t = await sequelize.transaction()
+  {{/x-get-method}}
+  try {
+  {{#x-post-method}}
+    const data = merge(params, {
+      id: uuidv4(),
+    {{#userToken}}
+      createdBy: {{#m2mToken}}currentUser.isMachine ? currentUser.sub : {{/m2mToken}}currentUser.userId,
+    {{/userToken}}
+    {{#userToken}}
+      updatedBy: {{#m2mToken}}currentUser.isMachine ? currentUser.sub : {{/m2mToken}}currentUser.userId
+    {{/userToken}}
+    })
+    const model = Model.{{returnType}}Model.build(data)
+    await model.save({ transaction: t })
+  {{/x-post-method}}
+  {{#x-get-method}}
+    {{#isListContainer}}
+    let options = {
+      where: params,
+      raw: true
+    }
+    const data = await Model.{{returnBaseType}}Model.findAll(options)
+    {{/isListContainer}}
+    {{^isListContainer}}
+    const data = await Model.{{returnBaseType}}Model.findByPk(params.id, { raw: true })
+    if (!data) {
+      return Promise.reject(new error.NotFoundError(`{{returnBaseType}} id '${params.id}' not found`))
+    }
+    {{/isListContainer}}
+  {{/x-get-method}}
+  {{#x-put-method}}
+    const oldObj = await Model.{{returnBaseType}}Model.findByPk(params.id, { raw: true })
+    if (!oldObj) {
+      return Promise.reject(new error.NotFoundError(`{{returnBaseType}} id '${params.id}' not found`))
+    }
+
+    const mergeData = merge(oldObj, params, {
+      {{#userToken}}
+      updatedBy: {{#m2mToken}}currentUser.isMachine ? currentUser.sub : {{/m2mToken}}currentUser.userId
+      {{/userToken}}
+    })
+    const model = Model.{{baseName}}Model.build(mergeData, { isNewRecord: true })
+    const data = await model.save({ transaction: t})
+  {{/x-put-method}}
+  {{#x-patch-method}}
+    const oldObj = await Model.{{returnBaseType}}Model.findByPk(params.id, { raw: true })
+    if (!oldObj) {
+      return Promise.reject(new error.NotFoundError(`{{returnBaseType}} id '${params.id}' not found`))
+    }
+
+    const mergeData = merge(oldObj, params, {
+      {{#userToken}}
+      updatedBy: {{#m2mToken}}currentUser.isMachine ? currentUser.sub : {{/m2mToken}}currentUser.userId
+      {{/userToken}}
+    })
+    const model = Model.{{baseName}}Model.build(mergeData, { isNewRecord: false })
+    const data = await model.save({ transaction: t})
+  {{/x-patch-method}}
+  {{#x-delete-method}}
+    const model = await Model.{{baseName}}Model.findByPk(params.id)
+    if (!model) {
+      return Promise.reject(new error.NotFoundError(`{{baseName}} id '${params.id}' not found.`))
+    }
+    await model.destroy({ transaction: t })
+  {{/x-delete-method}}
+  {{^x-get-method}}
+    await t.commit()
+  {{/x-get-method}}
+    return Promise.resolve({{^x-delete-method}}data{{/x-delete-method}})
+  } catch (err) {
+  {{^x-get-method}}
+    await t.rollback()
+  {{/x-get-method}}
+    return Promise.reject(err)
+  }
+  {{/vendorExtensions}}
+}
+
+{{nickname}}.schema = {
+{{#userToken}}
+  {{#vendorExtensions}}
+    {{#x-post-method}}
+  currentUser: Joi.any(),
+    {{/x-post-method}}
+    {{#x-put-method}}
+  currentUser: Joi.any(),
+    {{/x-put-method}}
+    {{#x-patch-method}}
+  currentUser: Joi.any(),
+    {{/x-patch-method}}
+  {{/vendorExtensions}}
+{{/userToken}}
+  params: Joi.object().keys({
+{{#pathParams}}
+  {{> sub.joiParam}}
+{{/pathParams}}
+{{#bodyParams}}
+  {{#isModel}}
+    {{#vendorExtensions}}
+      {{#x-refModel}}
+        {{#vars}}
+  {{> sub.joiParam}}
+        {{/vars}}
+      {{/x-refModel}}
+    {{/vendorExtensions}}
+  {{/isModel}}
+  {{^isModel}}
+  {{> sub.joiParam}}
+  {{/isModel}}
+{{/bodyParams}}
+{{#queryParams}}
+  {{> sub.joiParam}}
+{{/queryParams}}
+{{#formParams}}
+  {{> sub.joiParam}}
+{{/formParams}}
+  })
+}
