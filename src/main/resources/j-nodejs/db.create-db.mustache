@@ -1,0 +1,15 @@
+create schema dbschema;
+{{#models}}
+  {{#model}}
+    {{#vendorExtensions}}
+      {{#x-table-model}}
+
+create table dbschema."{{classVarName}}" (
+  {{#allVars}}
+  "{{baseName}}" varchar(100){{#hasMore}},{{/hasMore}}
+  {{/allVars}}
+);
+      {{/x-table-model}}
+    {{/vendorExtensions}}
+  {{/model}}
+{{/models}}

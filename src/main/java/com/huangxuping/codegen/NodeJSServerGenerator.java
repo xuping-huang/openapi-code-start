@@ -107,8 +107,8 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         supportingFiles.add(new SupportingFile("model.index.mustache", ("src/model").replace(".", File.separator), "index.js"));
         supportingFiles.add(new SupportingFile("route.operation.mustache", "./src", "routes.js"));
         supportingFiles.add(new SupportingFile("model.lookup.mustache", ("src/lib").replace(".", File.separator), "lookup-load.js"));
-        supportingFiles.add(new SupportingFile("db.data-init.mustache", "./scripts", "init-data.js"));
-        supportingFiles.add(new SupportingFile("db.data-clean.mustache", "./scripts", "clean-data.js"));
+        supportingFiles.add(new SupportingFile("db.tools.mustache", "./scripts", "tools.js"));
+        supportingFiles.add(new SupportingFile("db.create-db.mustache", "./scripts", "create-db.sql"));
         supportingFiles.add(new SupportingFile("test.data.mustache", "./test/lib", "test-data.js"));
         supportingFiles.add(new SupportingFile("e2e.index.mustache", "./test/e2e", "index.e2e.js"));
 
@@ -438,8 +438,25 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 case "json" :
                     this.additionalProperties.put("db_isJsonDB", true);
                     break;
+                case "sqlite" :
+                    this.additionalProperties.put("orm_isSequelize", true);
+                    this.additionalProperties.put("db_isSqlite", true);
+                    break;
                 case "mysql" :
+                    this.additionalProperties.put("orm_isSequelize", true);
                     this.additionalProperties.put("db_isMysql", true);
+                    break;
+                case "mariadb" :
+                    this.additionalProperties.put("orm_isSequelize", true);
+                    this.additionalProperties.put("db_isMariadb", true);
+                    break;
+                case "postgres" :
+                    this.additionalProperties.put("orm_isSequelize", true);
+                    this.additionalProperties.put("db_isPostgres", true);
+                    break;
+                case "mssql" :
+                    this.additionalProperties.put("orm_isSequelize", true);
+                    this.additionalProperties.put("db_isMssql", true);
                     break;
                 case "neo4j" :
                     this.additionalProperties.put("db_isNeo4j", true);
@@ -447,9 +464,6 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 case "mongodb" :
                 case "mongo" :
                     this.additionalProperties.put("db_isMongoDB", true);
-                    break;
-                case "sqlite" :
-                    this.additionalProperties.put("db_isSqlite", true);
                     break;
             }
         }

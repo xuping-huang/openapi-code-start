@@ -27,6 +27,7 @@ public class OpenApiTestHelper {
                 tests = analyzeDeleteOperationTest(operation);
                 break;
         }
+        tests.add(new PostmanTest("400 - null value"));
         ArrayList respTests = analyzeOperationResponseTest(operation);
         tests.addAll(respTests);
         PostmanTest lastTest = tests.get(tests.size() - 1);
@@ -35,7 +36,11 @@ public class OpenApiTestHelper {
         String[] pathStrs = StringUtils.split(operation.path, "/");
         List<PostmanPathItem> paths = new ArrayList<>();
         for(int i=0 ; i<pathStrs.length; i++){
-            PostmanPathItem pathItem = new PostmanPathItem(pathStrs[i]);
+            String pathStr = pathStrs[i];
+            if (pathStr.startsWith(":")) {
+                pathStr = "{{"+pathStr.substring(1)+"}}";
+            }
+            PostmanPathItem pathItem = new PostmanPathItem(pathStr);
             if(i == pathStrs.length - 1){
                 pathItem.hasMore = false;
             }
@@ -59,26 +64,28 @@ public class OpenApiTestHelper {
     static private ArrayList<PostmanTest> analyzeOperationResponseTest(CodegenOperation operation) {
         ArrayList tests = new ArrayList<PostmanTest>();
         ArrayList usedStatus = new ArrayList<String>();
-        tests.add(new PostmanTest("failure 401 - unauthorized request"));
+        tests.add(new PostmanTest(PostmanTest.UNAUTHORIZED_TITLE));
         usedStatus.add("401");
-        tests.add(new PostmanTest("failure 403 - not allow to call this service"));
+        tests.add(new PostmanTest(PostmanTest.EXPIRED_TITLE));
+        usedStatus.add("401");
+        tests.add(new PostmanTest(PostmanTest.NOT_ALLOW_TITLE));
         usedStatus.add("403");
         switch(operation.httpMethod){
             case "get":
-                tests.add(new PostmanTest("failure 404 - target not found"));
+                tests.add(new PostmanTest("404 - reference id not found"));
                 usedStatus.add("404");
                 break;
             case "put":
             case "patch":
-                tests.add(new PostmanTest("failure 409 - entity property conflict"));
+                tests.add(new PostmanTest("409 - entity property conflict"));
                 usedStatus.add("409");
                 break;
             case "post":
-                tests.add(new PostmanTest("failure 409 - entity property conflict"));
+                tests.add(new PostmanTest("409 - entity property conflict"));
                 usedStatus.add("409");
                 break;
             case "delete":
-                tests.add(new PostmanTest("failure 404 - target not found"));
+                tests.add(new PostmanTest("404 - reference not found"));
                 usedStatus.add("404");
                 break;
         }
@@ -87,13 +94,13 @@ public class OpenApiTestHelper {
             if (usedStatus.contains(response.code)) continue;
 
             if ( response.code.equalsIgnoreCase("404") ) {
-                tests.add(new PostmanTest("failure 404 - target not found"));
+                tests.add(new PostmanTest("404 - reference id not found"));
             } else if ( response.code.equalsIgnoreCase("405") ) {
-                tests.add(new PostmanTest("failure 405 - not allow to call this method"));
+                tests.add(new PostmanTest("405 - not allow to call this method"));
             } else if ( response.code.equalsIgnoreCase("409") ) {
-                tests.add(new PostmanTest("failure 409 - entity property conflict"));
+                tests.add(new PostmanTest("409 - entity property conflict"));
             } else if ( response.code.equalsIgnoreCase("415") ) {
-                tests.add(new PostmanTest("failure 415 - unsupported Media Type"));
+                tests.add(new PostmanTest("415 - unsupported Media Type"));
             }
         }
         return tests;
@@ -101,12 +108,13 @@ public class OpenApiTestHelper {
 
     static private ArrayList<PostmanTest> analyzeSearchOperationTest(CodegenOperation operation) {
         ArrayList tests = new ArrayList<PostmanTest>();
+        tests.add(new PostmanTest("200 - get all"));
         if ( operation.allParams != null ) {
             for (CodegenParameter param : operation.allParams) {
                 PostmanParam pp = new PostmanParam(param);
                 tests.addAll(handleParam(pp));
             }
-            tests.addAll(PostmanTest.getSearchTests("for search"));
+            tests.addAll(PostmanTest.getSearchTests("search"));
         }
         return tests;
     }
@@ -142,11 +150,11 @@ public class OpenApiTestHelper {
             tests.addAll(PostmanTest.getIdCardTests(param.paramName));
             return tests;
         }
-        if(param.isEmail) {
+        if(param.isEmail || param.name.toLowerCase().endsWith("mail")) {
             tests.addAll(PostmanTest.getEmailTests(param.paramName));
             return tests;
         }
-        if(param.isUuid) {
+        if(param.isUuid || param.name.toLowerCase().endsWith("id")) {
             tests.addAll(PostmanTest.getUuidTests(param.paramName));
             return tests;
         }
@@ -208,7 +216,7 @@ public class OpenApiTestHelper {
             tests.addAll(findBodyTests(operation.bodyParam));
         }
 
-        tests.addAll(PostmanTest.getUpdateTests("for update"));
+        tests.addAll(PostmanTest.getUpdateTests("update"));
         return tests;
     }
     static private ArrayList<PostmanTest> findBodyTests(CodegenParameter bodyParam){
@@ -235,7 +243,7 @@ public class OpenApiTestHelper {
         if (operation.bodyParam != null && operation.bodyParam.isModel) {
             tests.addAll(findBodyTests(operation.bodyParam));
         }
-        tests.addAll(PostmanTest.getCreateTests("for create"));
+        tests.addAll(PostmanTest.getCreateTests("create"));
         return tests;
     }
     static private ArrayList<PostmanTest> analyzeDeleteOperationTest(CodegenOperation operation) {
@@ -247,7 +255,7 @@ public class OpenApiTestHelper {
                 tests.addAll(handleParam(pp));
             }
         }
-        tests.addAll(PostmanTest.getDeleteTests("for delete"));
+        tests.addAll(PostmanTest.getDeleteTests("delete"));
         return tests;
     }
 }

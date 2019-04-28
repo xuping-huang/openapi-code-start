@@ -1,0 +1,81 @@
+/**
+* DB Scripts
+*/
+const fs = require('fs')
+const path = require('path')
+const merge = require('merge-deep')
+const XLSX = require('xlsx')
+const Model = require('../src/model/index')
+{{#orm_isSequelize}}
+const sequelize = require('../src/lib/db').dbSequelize
+{{/orm_isSequelize}}
+
+const cleanData = async () => {
+{{#orm_isSequelize}}
+  // await sequelize.truncate({ cascade: true })
+  await sequelize.sync({ force: true })
+{{/orm_isSequelize}}
+  return Promise.resolve()
+}
+
+module.exports.cleanData = cleanData
+
+const SheetName = {
+{{#models}}
+  {{#model}}
+    {{#vendorExtensions}}
+      {{#x-table-model}}
+  {{classVarName}}: '{{classVarName}}',
+      {{/x-table-model}}
+    {{/vendorExtensions}}
+  {{/model}}
+{{/models}}
+}
+
+module.exports.loadData = async () => {
+  const filePath = path.resolve(__dirname, 'data.xlsx')
+  const fileContent = fs.readFileSync(filePath)
+  const workbook = XLSX.read(fileContent, { type: 'buffer' })
+
+{{#models}}
+  {{#model}}
+    {{#vendorExtensions}}
+      {{#x-table-model}}
+  const sheet{{classVarName}} = XLSX.utils.sheet_to_json(workbook.Sheets[SheetName.{{classVarName}}])
+      {{/x-table-model}}
+    {{/vendorExtensions}}
+  {{/model}}
+{{/models}}
+  return {
+{{#models}}
+  {{#model}}
+    {{#vendorExtensions}}
+      {{#x-table-model}}
+    sheet{{classVarName}},
+      {{/x-table-model}}
+    {{/vendorExtensions}}
+  {{/model}}
+{{/models}}
+  }
+}
+
+module.exports.initData = async () => {
+  const filePath = path.resolve(__dirname, 'data.xlsx')
+  const fileContent = fs.readFileSync(filePath)
+  const workbook = XLSX.read(fileContent, { type: 'buffer' })
+{{#models}}
+  {{#model}}
+    {{#vendorExtensions}}
+      {{#x-table-model}}
+
+  const sheet{{classVarName}} = XLSX.utils.sheet_to_json(workbook.Sheets[SheetName.{{classVarName}}])
+  for (let row of sheet{{classVarName}}) {
+    const data = merge(row, { createUser: 1, modifyUser: 1 })
+    const model = Model.{{classVarName}}Model.build(data)
+    await model.save()
+  }
+      {{/x-table-model}}
+    {{/vendorExtensions}}
+  {{/model}}
+{{/models}}
+}

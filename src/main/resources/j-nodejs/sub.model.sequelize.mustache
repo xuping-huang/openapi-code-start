@@ -1,0 +1,123 @@
+
+const Sequelize = require('sequelize')
+const Model = Sequelize.Model
+const sequelize = require('../lib/db').sequelize
+{{^db_isSqlite}}
+const { DB_SCHEMA } = require('../constants')
+{{/db_isSqlite}}
+{{#swgdoc}}
+
+/**
+ * @swagger
+ * definitions:
+ *   {{name}}:
+ *     required:
+         {{#allVars}}
+         {{#required}}
+ *       - {{name}}
+         {{/required}}
+         {{/allVars}}
+ *     properties:
+         {{#allVars}}
+ *       {{name}}:
+           {{#isRefObject}}
+ *         $ref: #/definitions/{{refObjectName}}
+ *         description: {{description}}
+           {{/isRefObject}}
+           {{^isRefObject}}
+           {{#isUuid}}
+ *         type: string
+           {{/isUuid}}
+           {{^isUuid}}
+ *         type: {{baseType}}
+           {{/isUuid}}
+           {{#isListContainer}}
+ *         items:
+           {{#isContainer}}
+ *           type: #/definitions/{{complexType}}
+           {{/isContainer}}
+           {{^isContainer}}
+ *           type: {{complexType}}
+           {{/isContainer}}
+           {{/isListContainer}}
+           {{^isListContainer}}
+           {{#dataFormat}}
+ *         format: {{dataFormat}}
+           {{/dataFormat}}
+           {{#title}}
+ *         title: {{title}}
+           {{/title}}
+           {{#min}}
+ *         min: {{min}}
+           {{/min}}
+           {{#max}}
+ *         max: {{max}}
+           {{/max}}
+           {{#maxLength}}
+ *         maxLength: {{maxLength}}
+           {{/maxLength}}
+           {{#minLength}}
+ *         minLength: {{minLength}}
+           {{/minLength}}
+           {{#minimum}}
+ *         minimum: {{minimum}}
+           {{/minimum}}
+           {{#maximum}}
+ *         maximum: {{maximum}}
+           {{/maximum}}
+           {{#exclusiveMinimum}}
+ *         exclusiveMinimum: {{exclusiveMinimum}}
+           {{/exclusiveMinimum}}
+           {{#exclusiveMaximum}}
+ *         exclusiveMaximum: {{exclusiveMaximum}}
+           {{/exclusiveMaximum}}
+           {{#isEnum}}
+ *         enum:
+           {{#_enum}}
+ *           - {{.}}
+           {{/_enum}}
+           {{/isEnum}}
+           {{/isListContainer}}
+ *         description: {{description}}
+           {{/isRefObject}}
+         {{/allVars}}
+ */
+{{/swgdoc}}
+{{^swgdoc}}
+
+/**
+ * A class that represents a {{name}}.
+ * @extends Model
+ */
+{{/swgdoc}}
+class {{name}}Model extends Model {}
+{{name}}Model.init({
+{{#allVars}}
+  {{#isRefObject}}
+  {{/isRefObject}}
+  {{^isRefObject}}
+  {{name}}: {
+    {{#vendorExtensions.x-is-key}}
+    type: Sequelize.UUID,
+    primaryKey: true,
+    allowNull: false
+    {{/vendorExtensions.x-is-key}}
+    {{^vendorExtensions.x-is-key}}
+    type: Sequelize.{{> sub.sequelizeType}},
+    allowNull: true
+    {{/vendorExtensions.x-is-key}}
+  }{{#hasMore}},{{/hasMore}}
+  {{/isRefObject}}
+{{/allVars}}
+}, {
+  {{^db_isSqlite}}
+  schema: DB_SCHEMA,
+  {{/db_isSqlite}}
+  tableName: '{{name}}',
+  timestamps: true,
+  createdAt: 'createdOn',
+  updatedAt: 'updatedOn',
+  sequelize
+})
+
+module.exports = {{name}}Model

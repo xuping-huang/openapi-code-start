@@ -3,10 +3,7 @@ package com.huangxuping.codegen;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.openapitools.codegen.*;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GeneratorUtil {
     public void handleOperation(CodegenOperation operation){
@@ -36,13 +33,37 @@ public class GeneratorUtil {
 
     public void handleOperationWithModels(CodegenOperation operation, List<Object> allModels){
         if (operation.bodyParam != null && operation.bodyParam.isModel) {
+            List<String> inlineRefModels = new ArrayList<>();
             for (Object item: allModels) {
                 HashMap map = (HashMap)item;
                 // dataType === model.name
                 CodegenModel model = (CodegenModel)map.get("model");
                 if ( model.classname.equalsIgnoreCase(operation.bodyParam.dataType)){
-                    operation.bodyParam.vendorExtensions.put("x-refModel", model);
+                    if (model.classname.startsWith("InlineObject")) {
+                        for (CodegenProperty property : model.allVars){
+                            if (property != null) {
+                                if (property.isListContainer && property.items.isModel) {
+                                    inlineRefModels.add(property.items.complexType);
+                                } else if (property.isModel) {
+                                    inlineRefModels.add(property.complexType);
+                                }
+                            }
+                        }
+                    } else {
+                        operation.bodyParam.vendorExtensions.put("x-refModel", model);
+                    }
                     break;
+                }
+            }
+            // TODO: 当前只支持第一个引用参数，因为"x-refModel"只有一个，以后需要可以考虑扩展成支持多个
+            if (inlineRefModels.size() > 0) {
+                for (Object item: allModels) {
+                    HashMap map = (HashMap) item;
+                    CodegenModel model = (CodegenModel) map.get("model");
+                    if (model.classname.equalsIgnoreCase(inlineRefModels.get(0))) {
+                        operation.bodyParam.vendorExtensions.put("x-refModel", model);
+                        break;
+                    }
                 }
             }
         }

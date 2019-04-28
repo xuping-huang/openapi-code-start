@@ -2,17 +2,11 @@
   * {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}Find all {{returnType}} data in the system.{{/isListContainer}}{{^isListContainer}}Find a {{returnType}} by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}Create a new {{returnType}} in the system.{{/x-post-method}}{{#x-patch-method}}Update partial content of a {{returnType}} in the system.{{/x-patch-method}}{{#x-put-method}}Update a {{returnType}} in the system.{{/x-put-method}}{{#x-delete-method}}Delete a {{returnType}} in the system.{{/x-delete-method}}{{/vendorExtensions}}
   * @param {Object} params - {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}the search conditions{{/isListContainer}}{{^isListContainer}}the {{returnType}} id{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the contents of a new {{returnType}}{{/x-post-method}}{{#x-put-method}}the obj to update{{/x-put-method}}{{#x-patch-method}}the property of {{returnType}} to update{{/x-patch-method}}{{#x-delete-method}}the delete conditions{{/x-delete-method}}{{/vendorExtensions}}
   {{#userToken}}
-    {{#x-post-method}}
+    {{^x-get-method}}
       * @param {Object} currentUser - the user who perform operation
-    {{/x-post-method}}
-    {{#x-put-method}}
-      * @param {Object} currentUser - the user who perform operation
-    {{/x-put-method}}
-    {{#x-patch-method}}
-      * @param {Object} currentUser - the user who perform operation
-    {{/x-patch-method}}
+    {{/x-get-method}}
   {{/userToken}}
-  * @returns {{#vendorExtensions}}{{^x-get-method}}{Object}{{/x-get-method}}{{#x-get-method}}{{#isListContainer}}{Array}{{/isListContainer}}{{^isListContainer}}{Object}{{/isListContainer}}{{/x-get-method}}{{/vendorExtensions}} {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}a collection of {{returnType}}{{/isListContainer}}{{^isListContainer}}the {{returnType}} obtained by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the created {{returnType}}{{/x-post-method}}{{#x-put-method}}the updated {{returnType}}{{/x-put-method}}{{#x-patch-method}}the updated {{returnType}}{{/x-patch-method}}{{#x-delete-method}}the deleted {{returnType}}{{/x-delete-method}}{{/vendorExtensions}}
+  * @return {{#vendorExtensions}}{{^x-get-method}}{Object}{{/x-get-method}}{{#x-get-method}}{{#isListContainer}}{Array}{{/isListContainer}}{{^isListContainer}}{Object}{{/isListContainer}}{{/x-get-method}}{{/vendorExtensions}} {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}a collection of {{returnType}}{{/isListContainer}}{{^isListContainer}}the {{returnType}} obtained by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the created {{returnType}}{{/x-post-method}}{{#x-put-method}}the updated {{returnType}}{{/x-put-method}}{{#x-patch-method}}the updated {{returnType}}{{/x-patch-method}}{{#x-delete-method}}the deleted {{returnType}}{{/x-delete-method}}{{/vendorExtensions}}
   **/
   async function {{nickname}} (params{{#userToken}}{{#vendorExtensions}}{{#x-post-method}}, currentUser{{/x-post-method}}{{#x-put-method}}, currentUser{{/x-put-method}}{{#x-patch-method}}, currentUser{{/x-patch-method}}{{/vendorExtensions}}{{/userToken}}) {
   try {

@@ -11,6 +11,20 @@ const {{name}}Model = require('./{{classFilename}}.model')
 {{/model}}
 {{/models}}
 
+{{#models}}
+  {{#model}}
+    {{#vendorExtensions}}
+      {{#x-table-model}}
+{{#allVars}}
+  {{#vendorExtensions.x-foreign-model}}
+{{model.name}}Model.belongsTo({{.}}Model, { foreignKey: '{{name}}', targetKey: 'id' })
+{{.}}Model.hasMany({{model.name}}Model, { foreignKey: '{{name}}', sourceKey: 'id' })
+  {{/vendorExtensions.x-foreign-model}}
+{{/allVars}}
+      {{/x-table-model}}
+    {{/vendorExtensions}}
+  {{/model}}
+{{/models}}
 module.exports = {
 {{#models}}
 {{#model}}

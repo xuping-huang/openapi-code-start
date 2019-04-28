@@ -7,18 +7,27 @@ const merge = require('merge-deep')
 const uuidv4 = require('uuid/v4')
 const error = require('../lib/app-error')
 const Model = require('../model/index')
-{{#db_isSqlite}}
+{{#orm_isSequelize}}
 const sequelize = require('../lib/db').sequelize
-{{/db_isSqlite}}
+{{/orm_isSequelize}}
 
 {{#operations}}
 {{#operation}}
 {{#db_isDynamoDB}}
 {{> sub.service.operation.dynamo}}
 {{/db_isDynamoDB}}
-{{#db_isSqlite}}
-{{> sub.service.operation.sqlite}}
-{{/db_isSqlite}}
+{{#orm_isSequelize}}
+{{> sub.service.operation.sequelize}}
+{{/orm_isSequelize}}
+{{#db_isJsonDB}}
+{{> sub.service.operation.dynamo}}
+{{/db_isJsonDB}}
+{{#db_isNeo4j}}
+{{> sub.service.operation.dynamo}}
+{{/db_isNeo4j}}
+{{#db_isMongoDB}}
+{{> sub.service.operation.dynamo}}
+{{/db_isMongoDB}}
 {{/operation}}
 {{/operations}}
 module.exports = {

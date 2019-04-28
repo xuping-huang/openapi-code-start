@@ -1,18 +1,12 @@
 /**
-* {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}Find all {{classname}} data in the system.{{/isListContainer}}{{^isListContainer}}Find a {{classname}} by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}Create a new {{classname}} in the system.{{/x-post-method}}{{#x-patch-method}}Update partial content of a {{classname}} in the system.{{/x-patch-method}}{{#x-put-method}}Update a {{returnBaseType}} in the system.{{/x-put-method}}{{#x-delete-method}}Delete a {{classname}} in the system.{{/x-delete-method}}{{/vendorExtensions}}
+* {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}Retrieve all {{classname}} data in the system.{{/isListContainer}}{{^isListContainer}}Retrieve a {{classname}} by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}Create a new {{classname}} in the system.{{/x-post-method}}{{#x-patch-method}}Update partial content of a {{classname}} in the system.{{/x-patch-method}}{{#x-put-method}}Update a {{returnBaseType}} in the system.{{/x-put-method}}{{#x-delete-method}}Delete a {{classname}} in the system.{{/x-delete-method}}{{/vendorExtensions}}
 * @param {Object} params - {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}the search conditions{{/isListContainer}}{{^isListContainer}}the {{classname}} id{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the contents of a new {{classname}}{{/x-post-method}}{{#x-put-method}}the obj to update{{/x-put-method}}{{#x-patch-method}}the property of {{classname}} to update{{/x-patch-method}}{{#x-delete-method}}the delete conditions{{/x-delete-method}}{{/vendorExtensions}}
 {{#userToken}}
-  {{#x-post-method}}
+  {{^x-get-method}}
     * @param {Object} currentUser - the user who perform operation
-  {{/x-post-method}}
-  {{#x-put-method}}
-    * @param {Object} currentUser - the user who perform operation
-  {{/x-put-method}}
-  {{#x-patch-method}}
-    * @param {Object} currentUser - the user who perform operation
-  {{/x-patch-method}}
+  {{/x-get-method}}
 {{/userToken}}
-* @returns {{#vendorExtensions}}{{^x-get-method}}{Object}{{/x-get-method}}{{#x-get-method}}{{#isListContainer}}{Array}{{/isListContainer}}{{^isListContainer}}{Object}{{/isListContainer}}{{/x-get-method}}{{/vendorExtensions}} {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}a collection of {{classname}}{{/isListContainer}}{{^isListContainer}}the {{classname}} obtained by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the created {{classname}}{{/x-post-method}}{{#x-put-method}}the updated {{classname}}{{/x-put-method}}{{#x-patch-method}}the updated {{classname}}{{/x-patch-method}}{{#x-delete-method}}the deleted {{classname}}{{/x-delete-method}}{{/vendorExtensions}}
+* @return {{#vendorExtensions}}{{^x-get-method}}{Object}{{/x-get-method}}{{#x-get-method}}{{#isListContainer}}{Array}{{/isListContainer}}{{^isListContainer}}{Object}{{/isListContainer}}{{/x-get-method}}{{/vendorExtensions}} {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}a collection of {{classname}}{{/isListContainer}}{{^isListContainer}}the {{classname}} obtained by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}the created {{classname}}{{/x-post-method}}{{#x-put-method}}the updated {{classname}}{{/x-put-method}}{{#x-patch-method}}the updated {{classname}}{{/x-patch-method}}{{#x-delete-method}}the deleted {{classname}}{{/x-delete-method}}{{/vendorExtensions}}
 **/
 async function {{nickname}} (params{{#userToken}}{{#vendorExtensions}}{{#x-post-method}}, currentUser{{/x-post-method}}{{#x-put-method}}, currentUser{{/x-put-method}}{{#x-patch-method}}, currentUser{{/x-patch-method}}{{/vendorExtensions}}{{/userToken}}) {
   {{#vendorExtensions}}
@@ -60,7 +54,7 @@ async function {{nickname}} (params{{#userToken}}{{#vendorExtensions}}{{#x-post-
       {{/userToken}}
     })
     const model = Model.{{baseName}}Model.build(mergeData, { isNewRecord: true })
-    const data = await model.save({ transaction: t})
+    const data = await model.save({ transaction: t })
   {{/x-put-method}}
   {{#x-patch-method}}
     const oldObj = await Model.{{returnBaseType}}Model.findByPk(params.id, { raw: true })
@@ -74,7 +68,7 @@ async function {{nickname}} (params{{#userToken}}{{#vendorExtensions}}{{#x-post-
       {{/userToken}}
     })
     const model = Model.{{baseName}}Model.build(mergeData, { isNewRecord: false })
-    const data = await model.save({ transaction: t})
+    const data = await model.save({ transaction: t })
   {{/x-patch-method}}
   {{#x-delete-method}}
     const model = await Model.{{baseName}}Model.findByPk(params.id)

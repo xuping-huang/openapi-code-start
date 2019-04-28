@@ -98,6 +98,7 @@ const {{classname}}Service = require('../service/service.{{classname}}')
 {{/swgdoc}}
 {{^swgdoc}}
 /**
+ * {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}Retrieve all {{classname}} data in the system.{{/isListContainer}}{{^isListContainer}}Retrieve a {{classname}} by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}Create a new {{classname}} in the system.{{/x-post-method}}{{#x-patch-method}}Update partial content of a {{classname}} in the system.{{/x-patch-method}}{{#x-put-method}}Update a {{returnBaseType}} in the system.{{/x-put-method}}{{#x-delete-method}}Delete a {{classname}} in the system.{{/x-delete-method}}{{/vendorExtensions}}
  * {{notes}}
  * @param {Object} req - the request object
  * @param {Object} res - the response object
@@ -106,12 +107,17 @@ const {{classname}}Service = require('../service/service.{{classname}}')
 {{/swgdoc}}
 module.exports.{{nickname}} = async (req, res, next) => {
   const params = merge(req.query, req.body, req.params)
-  const data = await {{classname}}Service.{{nickname}}(params)
+  const data = await {{classname}}Service.{{nickname}}(params{{^vendorExtensions.x-get-method}}, req.authUser{{/vendorExtensions.x-get-method}})
   {{#vendorExtensions}}
   {{#x-get-method}}
   {{#isListContainer}}
+  {{#x-search-page}}
   const pagingData = helper.formatPagingData(req, data)
   res.set(pagingData.Headers).json(pagingData.Items)
+  {{/x-search-page}}
+  {{^x-search-page}}
+  res.json(data)
+  {{/x-search-page}}
   {{/isListContainer}}
   {{^isListContainer}}
   res.json(data)

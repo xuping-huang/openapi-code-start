@@ -1,53 +1,55 @@
   {{#isLong}}
-  {{baseName}}: Joi.number().integer(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.number().integer(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isLong}}
   {{#isInteger}}
-  {{baseName}}: Joi.number().integer(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.number().integer(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isInteger}}
   {{#isDouble}}
-  {{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isDouble}}
   {{#isFloat}}
-  {{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isFloat}}
   {{#isNumber}}
-  {{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.number(){{#minimum}}.min({{minimum}}){{/minimum}}{{#maximum}}.max({{maximum}}){{/maximum}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isNumber}}
   {{#isString}}
   {{^isEnum}}
-  {{baseName}}: Joi.string().trim(){{#minLength}}.min({{minLength}}){{/minLength}}{{#maxLength}}.max({{maxLength}}){{/maxLength}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+    {{^isUuid}}
+  {{baseName}}: Joi.string().trim(){{#minLength}}.min({{minLength}}){{/minLength}}{{#maxLength}}.max({{maxLength}}){{/maxLength}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
+    {{/isUuid}}
   {{/isEnum}}
   {{#isEnum}}
-  {{baseName}}: Joi.string().uppercase().valid(['ONE', 'TWO']).{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.string().uppercase().valid(['ONE', 'TWO']).{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isEnum}}
+  {{#isUuid}}
+  {{baseName}}: Joi.string().trim().lowercase().uuid().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
+  {{/isUuid}}
   {{/isString}}
   {{#isBoolean}}
-  {{baseName}}: JoiBoolean.{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.boolTransform().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isBoolean}}
   {{#isDate}}
-  {{baseName}}: Joi.date().iso().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.date().iso().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isDate}}
   {{#isDateTime}}
-  {{baseName}}: Joi.date().iso().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.date().iso().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isDateTime}}
-  {{#isUuid}}
-  {{baseName}}: Joi.string().trim().lowercase().uuid().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
-  {{/isUuid}}
-   {{#isByteArray}}
-  {{baseName}}: Joi.array().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{#isByteArray}}
+  {{baseName}}: Joi.array().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isByteArray}}
   {{#isEmail}}
-  {{baseName}}: Joi.string().email().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.string().email().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isEmail}}
   {{#isFreeFormObject}}
-  {{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isFreeFormObject}}
   {{#isListContainer}}
-  {{baseName}}: Joi.array().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.array().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isListContainer}}
   {{#isMapContainer}}
-  {{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isMapContainer}}
   {{#isFile}}
-  {{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}}{{#hasMore}},{{/hasMore}}
+  {{baseName}}: Joi.any().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isFile}}
