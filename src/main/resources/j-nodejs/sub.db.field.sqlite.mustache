@@ -1,0 +1,55 @@
+  {{#isLong}}
+  "{{baseName}}" INTEGER {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isLong}}
+  {{#isInteger}}
+  "{{baseName}}" INTEGER {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isInteger}}
+  {{#isDouble}}
+  "{{baseName}}" REAL {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isDouble}}
+  {{#isFloat}}
+  "{{baseName}}" REAL {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isFloat}}
+  {{#isNumber}}
+  "{{baseName}}" NUMERIC {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isNumber}}
+  {{#isString}}
+  {{^isEnum}}
+    {{^isUuid}}
+  "{{baseName}}" TEXT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+    {{/isUuid}}
+  {{/isEnum}}
+  {{#isEnum}}
+  "{{baseName}}" TEXT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isEnum}}
+  {{#isUuid}}
+  "{{baseName}}" TEXT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isUuid}}
+  {{/isString}}
+  {{#isBoolean}}
+  "{{baseName}}" INTEGER {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isBoolean}}
+  {{#isDate}}
+  "{{baseName}}" TEXT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isDate}}
+  {{#isDateTime}}
+  "{{baseName}}" TEXT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isDateTime}}
+  {{#isByteArray}}
+  "{{baseName}}" TEXT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isByteArray}}
+  {{#isEmail}}
+  "{{baseName}}" TEXT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isEmail}}
+  {{#isFreeFormObject}}
+  "{{baseName}}" BLOB {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isFreeFormObject}}
+  {{#isListContainer}}
+  "{{baseName}}" BLOB {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isListContainer}}
+  {{#isMapContainer}}
+  "{{baseName}}" BLOB {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isMapContainer}}
+  {{#isFile}}
+  "{{baseName}}" BLOB {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isFile}}

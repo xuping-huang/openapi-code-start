@@ -1,15 +1,54 @@
-create schema dbschema;
+{{^db_isSqlite}}create schema dbschema;{{/db_isSqlite}}
 {{#models}}
   {{#model}}
     {{#vendorExtensions}}
       {{#x-table-model}}
+        {{^db_isJsonDB}}
 
-create table dbschema."{{classVarName}}" (
+{{#db_isDynamoDB}}
+aws dynamodb create-table ^
+  --table-name {{classVarName}} ^
+  --attribute-definitions AttributeName=id,AttributeType=S ^
+  --key-schema AttributeName=id,KeyType=HASH ^
+  --region eu-central-1 ^
+  --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 ^
+  --endpoint-url http://localhost:8000
+{{/db_isDynamoDB}}
+{{^db_isDynamoDB}}
+  {{^db_isMongoDB}}
+create table {{^db_isSqlite}}dbschema.{{/db_isSqlite}}{{^db_isMariadb}}{{^db_isMysql}}"{{/db_isMysql}}{{/db_isMariadb}}{{classVarName}}{{^db_isMariadb}}{{^db_isMysql}}"{{/db_isMysql}}{{/db_isMariadb}} (
   {{#allVars}}
-  "{{baseName}}" varchar(100){{#hasMore}},{{/hasMore}}
+
+  {{#db_isNeo4j}}
+  {{> sub.db.field.neo4j}}
+  {{/db_isNeo4j}}
+  {{#db_isMongoDB}}
+  {{> sub.db.field.mongo}}
+  {{/db_isMongoDB}}
+  {{#db_isSqlite}}
+  {{> sub.db.field.sqlite}}
+  {{/db_isSqlite}}
+  {{#db_isMysql}}
+  {{> sub.db.field.mysql}}
+  {{/db_isMysql}}
+  {{#db_isMariadb}}
+  {{> sub.db.field.mariadb}}
+  {{/db_isMariadb}}
+  {{#db_isPostgres}}
+  {{> sub.db.field.postgres}}
+  {{/db_isPostgres}}
+  {{#db_isMssql}}
+  {{> sub.db.field.mssql}}
+  {{/db_isMssql}}
   {{/allVars}}
 );
+  {{/db_isMongoDB}}
+{{/db_isDynamoDB}}
+        {{/db_isJsonDB}}
       {{/x-table-model}}
     {{/vendorExtensions}}
   {{/model}}
 {{/models}}
+{{#db_isJsonDB}}
+## // TODO: remove this file
+{{/db_isJsonDB}}

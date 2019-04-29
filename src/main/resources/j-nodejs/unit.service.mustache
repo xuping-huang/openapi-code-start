@@ -1,73 +1,101 @@
-/*
-* Unit testing of {{baseName}} Service with mocks
+/**
+* Unit test of the {{baseName}}.
 */
+const _ = require('lodash')
+const merge = require('merge-deep')
+const config = require('config')
+const should = require('should')
+const { User } = require('../lib/testData')
+const { loadData } = require('../../scripts/tools')
+const Constants = require('../../src/constants')
+const {{classname}}Service = require('../../src/service/service.{{classname}}')
 
-const chai = require('chai')
-const expect = chai.expect
-const chaiAsPromised = require('chai-as-promised')
-const sinonChai = require('sinon-chai')
-chai.use(chaiAsPromised)
-chai.use(sinonChai)
-chai.should()
+const errorCase = new Error('should not throw error here')
 
-const error = require('../../../src/lib/app-error')
-const model = require('../../../src/model/index')
-const service = require('../../../src/service/service.{{classname}}')
-const testData = require('../../lib/test-data')
-const checker = require('../../lib/test-helper')
-
-describe('{{baseName}} Service Unit Test', () => {
-  beforeEach(() => {
+module.exports = describe('{{baseName}} resource', () => {
+  let SheetData
+  before(async () => {
+    SheetData = await loadData()
   })
 
-  afterEach(() => {
-  })
+{{#operations}}
+{{#operation}}
+  describe('{{operationIdSnakeCase}} endpoint', () => {
+    const reqBody = {}
 
-  {{#operations}}
-  {{#operation}}
-  describe('{{operationId}} function test', () => {
   {{#vendorExtensions}}
-  {{#x-valid-methods}}
-    it('{{title}}', async () => {
-      const body = testData.{{baseName}}.createBody()
-    {{#isFailValidate}}
-      try {
-      {{#isCreate}}
-        const res = await service.{{operationId}}(body)
-        // should...
-      {{/isCreate}}
-      {{#isDeleteById}}
-        const res = await service.{{operationId}}(body)
-        // should...
-      {{/isDeleteById}}
-      {{#isGetById}}
-        const res = await service.{{operationId}}(body)
-        // should...
-      {{/isGetById}}
-      {{#isSearch}}
-        const res = await service.{{operationId}}(body)
-        // should...
-      {{/isSearch}}
-      {{#isUpdateById}}
-        const res = await service.{{operationId}}(body)
-        // should...
-      {{/isUpdateById}}
-        throw new Error('The expected error did not occur.')
-      } catch (err) {
-        should.equal(err.status, {{statusCode}})
-        should.equal(_.get(err, 'response.body.message'), `message required`)
-      }
-    {{/isFailValidate}}
-    {{^isFailValidate}}
-      const res = await service.{{operationId}}(body)
-      // should ...
-      await checker.assert{{baseName}}(result.id, result)
-    {{/isFailValidate}}
+    {{#x-get-method}}
+      {{#responses.isListContainer}}
+    const assert{{baseName}}SearchBody = async (record, queryParams, isSuccess) => {
+    }
+      {{/responses.isListContainer}}
+      {{^responses.isListContainer}}
+    const assert{{baseName}}GetBody = async (record, {{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}, isSuccess) => {
+    }
+      {{/responses.isListContainer}}
+    {{/x-get-method}}
+    {{#x-post-method}}
+    const assert{{baseName}}CreateBody = async (record, isSuccess) => {
+    }
+    {{/x-post-method}}
+    {{#x-delete-method}}
+    const assert{{baseName}}DeleteBody = async (record, isSuccess) => {
+    }
+    {{/x-delete-method}}
+    {{#x-put-method}}
+    const assert{{baseName}}UpdateBody = async (record, {{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}, isSuccess) => {
+    }
+    {{/x-put-method}}
+    {{#x-patch-method}}
+    const assert{{baseName}}PartialUpdateBody = async (record, {{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}, isSuccess) => {
+    }
+    {{/x-patch-method}}
+  {{/vendorExtensions}}
+
+    before(async () => {
     })
 
-  {{/x-valid-methods}}
+  {{#vendorExtensions}}
+    {{#x-valid-methods}}
+    it('{{title}}', async () => {
+      {{#isFailValidate}}
+      try {
+        const params = merge(reqBody, { })
+        await {{classname}}Service.{{operationId}}(params, User.user1())
+        throw errorCase
+      } catch (err) {
+        should.equal(err.status, {{statusCode}})
+        should.equal(`message required`, err.message)
+      }
+      {{/isFailValidate}}
+      {{^isFailValidate}}
+      const params = merge(reqBody, { })
+      const ret = await {{classname}}Service.{{operationId}}(params, User.user1())
+      {{#isGetById}}
+      await assert{{baseName}}GetBody(ret, {{#pathParams}}ret.{{paramName}},{{/pathParams}} true)
+      {{/isGetById}}
+      {{#isSearch}}
+      await assert{{baseName}}SearchBody(ret, queryParams, true)
+      {{/isSearch}}
+      {{#isCreate}}
+      await assert{{baseName}}CreateBody(ret, true)
+      {{/isCreate}}
+      {{#isUpdateById}}
+      await assert{{baseName}}UpdateBody(ret, true)
+      {{/isUpdateById}}
+      {{#isPartialUpdateById}}
+      await assert{{baseName}}PartialUpdateBody(ret, true)
+      {{/isPartialUpdateById}}
+      {{#isDeleteById}}
+      await assert{{baseName}}DeleteBody(ret, true)
+      {{/isDeleteById}}
+      {{/isFailValidate}}
+    })
+
+    {{/x-valid-methods}}
   {{/vendorExtensions}}
   })
-  {{/operation}}
-  {{/operations}}
+{{/operation}}
+
+{{/operations}}
 })

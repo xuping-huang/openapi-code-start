@@ -1,5 +1,5 @@
 /**
- * E2E test of the {{openAPI.info.title}}.
+ * Unit test of the {{openAPI.info.title}}.
  */
 
 process.env.NODE_ENV = 'test'
@@ -11,7 +11,7 @@ const logger = require('../../src/lib/logger')
 const testHelper = require('../lib/testHelper')
 const { cleanData, initData } = require('../../scripts/tools')
 
-describe('{{openAPI.info.title}} E2E Test', () => {
+describe('{{openAPI.info.title}} Unit Test', () => {
   let app
   let infoLogs = []
   let errorLogs = []
@@ -80,10 +80,10 @@ describe('{{openAPI.info.title}} E2E Test', () => {
     logger.debug = debug
   })
 
-  describe('Service E2E Test', () => {
+  describe('Service Unit Test', () => {
 {{#apiInfo}}
   {{#apis}}
-    require('./{{classFilename}}.test')
+    require('./service.{{classname}}.test')
   {{/apis}}
 {{/apiInfo}}
   })

@@ -17,8 +17,10 @@ public class OpenApiTestHelper {
                     tests = analyzeGetOperationTest(operation);
                 break;
             case "put":
-            case "patch":
                 tests = analyzeUpdateOperationTest(operation);
+                break;
+            case "patch":
+                tests = analyzePartialUpdateOperationTest(operation);
                 break;
             case "post":
                 tests = analyzeCreateOperationTest(operation);
@@ -27,9 +29,6 @@ public class OpenApiTestHelper {
                 tests = analyzeDeleteOperationTest(operation);
                 break;
         }
-        tests.add(new PostmanTest("400 - null value"));
-        ArrayList respTests = analyzeOperationResponseTest(operation);
-        tests.addAll(respTests);
         PostmanTest lastTest = tests.get(tests.size() - 1);
         lastTest.hasMore = false;
 
@@ -107,7 +106,7 @@ public class OpenApiTestHelper {
     }
 
     static private ArrayList<PostmanTest> analyzeSearchOperationTest(CodegenOperation operation) {
-        ArrayList tests = new ArrayList<PostmanTest>();
+        ArrayList<PostmanTest> tests = new ArrayList<PostmanTest>();
         tests.add(new PostmanTest("200 - get all"));
         if ( operation.allParams != null ) {
             for (CodegenParameter param : operation.allParams) {
@@ -115,6 +114,13 @@ public class OpenApiTestHelper {
                 tests.addAll(handleParam(pp));
             }
             tests.addAll(PostmanTest.getSearchTests("search"));
+        }
+        tests.add(new PostmanTest("400 - null value"));
+        ArrayList respTests = analyzeOperationResponseTest(operation);
+        tests.addAll(respTests);
+
+        for (PostmanTest test : tests) {
+            test.isSearch = true;
         }
         return tests;
     }
@@ -186,7 +192,7 @@ public class OpenApiTestHelper {
     }
 
     static private ArrayList<PostmanTest> analyzeGetOperationTest(CodegenOperation operation) {
-        ArrayList tests = new ArrayList<PostmanTest>();
+        ArrayList<PostmanTest> tests = new ArrayList<PostmanTest>();
         tests.add(PostmanTest.getFindByIdSuccessTest());
         if ( operation.allParams != null ) {
             for (CodegenParameter param : operation.allParams) {
@@ -200,10 +206,17 @@ public class OpenApiTestHelper {
                 tests.addAll(handleParam(pp));
             }
         }
+        tests.add(new PostmanTest("400 - null value"));
+        ArrayList respTests = analyzeOperationResponseTest(operation);
+        tests.addAll(respTests);
+
+        for (PostmanTest test : tests) {
+            test.isGetById = true;
+        }
         return tests;
     }
     static private ArrayList<PostmanTest> analyzeUpdateOperationTest(CodegenOperation operation) {
-        ArrayList tests = new ArrayList<PostmanTest>();
+        ArrayList<PostmanTest> tests = new ArrayList<PostmanTest>();
         tests.add(PostmanTest.getUpdateSuccessTests());
         if ( operation.allParams != null ) {
             for (CodegenParameter param : operation.allParams) {
@@ -217,6 +230,36 @@ public class OpenApiTestHelper {
         }
 
         tests.addAll(PostmanTest.getUpdateTests("update"));
+        tests.add(new PostmanTest("400 - null value"));
+        ArrayList respTests = analyzeOperationResponseTest(operation);
+        tests.addAll(respTests);
+
+        for (PostmanTest test : tests) {
+            test.isUpdateById = true;
+        }
+        return tests;
+    }
+    static private ArrayList<PostmanTest> analyzePartialUpdateOperationTest(CodegenOperation operation) {
+        ArrayList<PostmanTest> tests = new ArrayList<PostmanTest>();
+        tests.add(PostmanTest.getUpdateSuccessTests());
+        if ( operation.allParams != null ) {
+            for (CodegenParameter param : operation.allParams) {
+                PostmanParam pp = new PostmanParam(param);
+                if (param.isBodyParam) continue;
+                tests.addAll(handleParam(pp));
+            }
+        }
+        if (operation.bodyParam != null && operation.bodyParam.isModel) {
+            tests.addAll(findBodyTests(operation.bodyParam));
+        }
+
+        tests.addAll(PostmanTest.getUpdateTests("update"));
+        tests.add(new PostmanTest("400 - null value"));
+        ArrayList respTests = analyzeOperationResponseTest(operation);
+        tests.addAll(respTests);
+        for (PostmanTest test : tests) {
+            test.isPartialUpdateById = true;
+        }
         return tests;
     }
     static private ArrayList<PostmanTest> findBodyTests(CodegenParameter bodyParam){
@@ -231,7 +274,7 @@ public class OpenApiTestHelper {
         return tests;
     }
     static private ArrayList<PostmanTest> analyzeCreateOperationTest(CodegenOperation operation) {
-        ArrayList tests = new ArrayList<PostmanTest>();
+        ArrayList<PostmanTest> tests = new ArrayList<PostmanTest>();
         tests.add(PostmanTest.getCreateSuccessTests(operation.returnBaseType));
         if ( operation.allParams != null ) {
             for (CodegenParameter param : operation.allParams) {
@@ -244,10 +287,16 @@ public class OpenApiTestHelper {
             tests.addAll(findBodyTests(operation.bodyParam));
         }
         tests.addAll(PostmanTest.getCreateTests("create"));
+        tests.add(new PostmanTest("400 - null value"));
+        ArrayList respTests = analyzeOperationResponseTest(operation);
+        tests.addAll(respTests);
+        for (PostmanTest test : tests) {
+            test.isCreate = true;
+        }
         return tests;
     }
     static private ArrayList<PostmanTest> analyzeDeleteOperationTest(CodegenOperation operation) {
-        ArrayList tests = new ArrayList<PostmanTest>();
+        ArrayList<PostmanTest> tests = new ArrayList<PostmanTest>();
         tests.add(PostmanTest.getDeleteSuccessTests());
         if ( operation.allParams != null ) {
             for (CodegenParameter param : operation.allParams) {
@@ -256,6 +305,13 @@ public class OpenApiTestHelper {
             }
         }
         tests.addAll(PostmanTest.getDeleteTests("delete"));
+        tests.add(new PostmanTest("400 - null value"));
+        ArrayList respTests = analyzeOperationResponseTest(operation);
+        tests.addAll(respTests);
+
+        for (PostmanTest test : tests) {
+            test.isDeleteById = true;
+        }
         return tests;
     }
 }

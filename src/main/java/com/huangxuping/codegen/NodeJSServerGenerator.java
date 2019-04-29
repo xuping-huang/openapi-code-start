@@ -54,9 +54,6 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 "model.repo.mustache",
                 ".model.js"
         );
-        modelTestTemplateFiles.put(
-                "unit.model.mustache",   // the template to use
-                ".model.spec.js");       // the extension for each file to write
 
         /*
          * Api classes.  You can write classes for each Api file with the apiTemplateFiles map.
@@ -70,14 +67,11 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 "service.operation.mustache",   // the template to use
                 ".js");       // the extension for each file to write
         apiTestTemplateFiles.put(
-                "e2e.operation.mustache",   // the template to use
+                "e2e.service.mustache",   // the template to use
                 ".test.js");       // the extension for each file to write
         apiTestTemplateFiles.put(
-                "unit.controller.mustache",   // the template to use
-                ".spec.js");       // the extension for each file to write
-        apiTestTemplateFiles.put(
                 "unit.service.mustache",   // the template to use
-                ".spec.js");       // the extension for each file to write
+                ".test.js");       // the extension for each file to write
 
         /*
          * Template Location.  This is the location which templates will be read from.  The generator
@@ -110,7 +104,8 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         supportingFiles.add(new SupportingFile("db.tools.mustache", "./scripts", "tools.js"));
         supportingFiles.add(new SupportingFile("db.create-db.mustache", "./scripts", "create-db.sql"));
         supportingFiles.add(new SupportingFile("test.data.mustache", "./test/lib", "test-data.js"));
-        supportingFiles.add(new SupportingFile("e2e.index.mustache", "./test/e2e", "index.e2e.js"));
+        supportingFiles.add(new SupportingFile("e2e.index.mustache", "./test/e2e", "test.js"));
+        supportingFiles.add(new SupportingFile("unit.index.mustache", "./test/unit", "test.js"));
 
 
         cliOptions.add(new CliOption(SERVER_PORT,
@@ -199,15 +194,15 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
     public String apiTestFilename(String templateName, String tag) {
         String result = super.apiTestFilename(templateName, tag);
 
-        if (templateName.equals("e2e.operation.mustache")) {
+        if (templateName.equals("e2e.service.mustache")) {
             String stringToMatch = "controller" + File.separator;
             String replacement =  implFolder + File.separator + "../../e2e" + File.separator;
-            result = result.replace(stringToMatch, replacement).replace("api.","");
+            result = result.replace(stringToMatch, replacement);// .replace("api.","");
         }
 
         if (templateName.equalsIgnoreCase(("unit.service.mustache"))) {
             String stringToMatch = "controller" + File.separator;
-            String replacement =  implFolder + File.separator ;
+            String replacement =  implFolder + File.separator + "../../unit" + File.separator;
             result = result.replace(stringToMatch, replacement).replace("api.","service.");
         }
         return result;
@@ -372,7 +367,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
          * entire object tree available.  If the input file has a suffix of `.mustache
          * it will be processed by the template engine.  Otherwise, it will be copied
          */
-        // supportingFiles.add(new SupportingFile("e2e.operation.mustache",
+        // supportingFiles.add(new SupportingFile("e2e.service.mustache",
         //   "controllers",
         //   "controller.js")
         // );

@@ -1,0 +1,153 @@
+/**
+* E2E test of the {{baseName}}.
+*/
+const _ = require('lodash')
+const merge = require('merge-deep')
+const config = require('config')
+const should = require('should')
+const { postRequest, getRequest, putRequest, deleteRequest, patchRequest } = require('../lib/testHelper')
+const { Token } = require('../lib/testData')
+const { loadData } = require('../../scripts/tools')
+const Constants = require('../../src/constants')
+
+const errorCase = new Error('should not throw error here')
+const pathOfMessage = 'response.body.message'
+
+module.exports = describe('{{baseName}} resource', () => {
+  let SheetData
+  before(async () => {
+    SheetData = await loadData()
+  })
+
+  {{#operations}}
+    {{#operation}}
+  describe('{{operationIdSnakeCase}} endpoint', () => {
+    const {{operationId}}Url = `http://localhost:${config.PORT}{{path}}`
+    const reqBody = {}
+
+    const format{{operationId}}Url = ({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}) => {
+      const path = `${ {{operationId}}Url }/`
+      return path
+    }
+  {{#vendorExtensions}}
+    {{#x-get-method}}
+      {{#responses.isListContainer}}
+    const assert{{baseName}}SearchBody = async (record, queryParams, isSuccess) => {
+    }
+      {{/responses.isListContainer}}
+      {{^responses.isListContainer}}
+    const assert{{baseName}}GetBody = async (record, {{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}, isSuccess) => {
+    }
+      {{/responses.isListContainer}}
+    {{/x-get-method}}
+    {{#x-post-method}}
+    const assert{{baseName}}CreateBody = async (record, isSuccess) => {
+    }
+    {{/x-post-method}}
+    {{#x-delete-method}}
+    const assert{{baseName}}DeleteBody = async (record, isSuccess) => {
+    }
+    {{/x-delete-method}}
+    {{#x-put-method}}
+    const assert{{baseName}}UpdateBody = async (record, {{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}, isSuccess) => {
+    }
+    {{/x-put-method}}
+    {{#x-patch-method}}
+    const assert{{baseName}}PartialUpdateBody = async (record, {{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}, isSuccess) => {
+    }
+    {{/x-patch-method}}
+  {{/vendorExtensions}}
+
+    before(async () => {
+    })
+
+    {{#vendorExtensions}}
+      {{#x-valid-methods}}
+    it('{{title}}', async () => {
+      {{#isFailValidate}}
+      try {
+        {{#isCreate}}
+        const body = merge(reqBody, { })
+        await postRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
+        {{/isCreate}}
+        {{#isDeleteById}}
+        await deleteRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
+        {{/isDeleteById}}
+        {{#isGetById}}
+        await getRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
+        {{/isGetById}}
+        {{#isSearch}}
+        const queryParams = {
+          {{#queryParams}}{{paramName}}: '{{paramName}}'{{#hasMore}},{{/hasMore}}
+          {{/queryParams}}
+        }
+        await getRequest(format{{operationId}}Url(queryParams), {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
+        {{/isSearch}}
+        {{#isUpdateById}}
+        const body = merge(reqBody, { })
+        await putRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
+        {{/isUpdateById}}
+        {{#isPartialUpdateById}}
+        const body = merge(reqBody, { })
+        await patchRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
+        {{/isPartialUpdateById}}
+        throw errorCase
+      } catch (err) {
+        should.equal(err.status, {{statusCode}})
+        should.equal(`message required`, _.get(err, pathOfMessage))
+      }
+      {{/isFailValidate}}
+      {{^isFailValidate}}
+      {{#isGetById}}
+      const res = await getRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), Token.user1)
+      should.equal(res.status, {{statusCode}})
+      const record = res.body
+      await assert{{baseName}}GetBody(record, {{#pathParams}}record.{{paramName}},{{/pathParams}} record, true)
+      {{/isGetById}}
+      {{#isSearch}}
+      const queryParams = {
+        {{#queryParams}}{{paramName}}: '{{paramName}}'{{#hasMore}},{{/hasMore}}
+        {{/queryParams}}
+      }
+      const res = await getRequest(format{{operationId}}Url(queryParams), Token.user1)
+      should.equal(res.status, {{statusCode}})
+      const record = res.body
+      await assert{{baseName}}SearchBody(record, queryParams, true)
+      {{/isSearch}}
+      {{#isCreate}}
+      const body = merge(reqBody, { })
+      const res = await postRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, Token.user1)
+      should.equal(res.status, {{statusCode}})
+      const record = res.body
+      await assert{{baseName}}CreateBody(record, true)
+      {{/isCreate}}
+      {{#isUpdateById}}
+      const body = merge(reqBody, { })
+      const res = await putRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, Token.user1)
+      should.equal(res.status, {{statusCode}})
+      const record = res.body
+      await assert{{baseName}}UpdateBody(record, true)
+      {{/isUpdateById}}
+      {{#isPartialUpdateById}}
+      const body = merge(reqBody, { })
+      const res = await patchRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, Token.user1)
+      should.equal(res.status, {{statusCode}})
+      const record = res.body
+      await assert{{baseName}}PartialUpdateBody(record, true)
+      {{/isPartialUpdateById}}
+      {{#isDeleteById}}
+      const res = await deleteRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), Token.user1)
+      should.equal(res.status, {{statusCode}})
+      const record = res.body
+      await assert{{baseName}}DeleteBody(record, true)
+      {{/isDeleteById}}
+      {{/isFailValidate}}
+    })
+
+      {{/x-valid-methods}}
+    {{/vendorExtensions}}
+  })
+    {{/operation}}
+
+  {{/operations}}
+})

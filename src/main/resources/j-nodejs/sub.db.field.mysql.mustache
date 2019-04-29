@@ -1,0 +1,55 @@
+  {{#isLong}}
+  {{baseName}} 	BIGINT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isLong}}
+  {{#isInteger}}
+  {{baseName}} INT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isInteger}}
+  {{#isDouble}}
+  {{baseName}} 	DOUBLE {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isDouble}}
+  {{#isFloat}}
+  {{baseName}} FLOAT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isFloat}}
+  {{#isNumber}}
+  {{baseName}} DECIMAL(16,6) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isNumber}}
+  {{#isString}}
+  {{^isEnum}}
+    {{^isUuid}}
+  {{baseName}} VARCHAR(255) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+    {{/isUuid}}
+  {{/isEnum}}
+  {{#isEnum}}
+  {{baseName}} VARCHAR(20) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isEnum}}
+  {{#isUuid}}
+  {{baseName}} VARCHAR(64) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isUuid}}
+  {{/isString}}
+  {{#isBoolean}}
+  {{baseName}} TINYINT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isBoolean}}
+  {{#isDate}}
+  {{baseName}} DATE {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isDate}}
+  {{#isDateTime}}
+  {{baseName}} DATETIME {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isDateTime}}
+  {{#isByteArray}}
+  {{baseName}} MEDIUMTEXT {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isByteArray}}
+  {{#isEmail}}
+  {{baseName}} VARCHAR(255) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isEmail}}
+  {{#isFreeFormObject}}
+  {{baseName}} JSON {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isFreeFormObject}}
+  {{#isListContainer}}
+  {{baseName}} JSON {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isListContainer}}
+  {{#isMapContainer}}
+  {{baseName}} JSON {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isMapContainer}}
+  {{#isFile}}
+  {{baseName}} MEDIUMBLOB {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isFile}}

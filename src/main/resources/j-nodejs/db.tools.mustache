@@ -32,6 +32,31 @@ const SheetName = {
 {{/models}}
 }
 
+module.exports.createSheet = async () => {
+  const workbook = {
+    SheetNames: [],
+    Sheets: {}
+  }
+  const COLUMN_NAME = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  for (let sheet in SheetName) {
+    workbook.SheetNames.push(sheet)
+    let modelColumn = { '!ref': 'A1:Z1' }
+    for (let model in Model) {
+      if (String(model) === String(sheet + 'Model')) {
+        let ind = 0
+        for (let prop in Model[model].tableAttributes) {
+          const pn = COLUMN_NAME[ind] + '1'
+          modelColumn[pn] = { v: prop }
+          ind++
+        }
+      }
+    }
+    workbook.Sheets[sheet] = modelColumn
+  }
+  
+  XLSX.writeFile(workbook, path.resolve(__dirname, 'data.xlsx'))
+}
+
 module.exports.loadData = async () => {
   const filePath = path.resolve(__dirname, 'data.xlsx')
   const fileContent = fs.readFileSync(filePath)

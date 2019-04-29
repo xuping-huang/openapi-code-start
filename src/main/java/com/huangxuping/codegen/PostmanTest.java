@@ -11,9 +11,10 @@ public class PostmanTest {
     public String statusCode;
     public Boolean isCreate = false;
     public Boolean isUpdateById = false;
+    public Boolean isPartialUpdateById = false;
     public Boolean isDeleteById = false;
     public Boolean isGetById = false;
-    public Boolean isSearch = true;
+    public Boolean isSearch = false;
     public Boolean hasMore = true;
     public Boolean isFailValidate = false;
     public Boolean isNoAuth = false;

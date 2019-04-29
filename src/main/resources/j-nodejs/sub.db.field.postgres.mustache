@@ -1,0 +1,55 @@
+  {{#isLong}}
+  "{{baseName}}" numeric(10,0) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isLong}}
+  {{#isInteger}}
+  "{{baseName}}" numeric(5,0) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isInteger}}
+  {{#isDouble}}
+  "{{baseName}}" numeric(20,6) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isDouble}}
+  {{#isFloat}}
+  "{{baseName}}" numeric(16,6) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isFloat}}
+  {{#isNumber}}
+  "{{baseName}}" numeric(16,6) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isNumber}}
+  {{#isString}}
+  {{^isEnum}}
+    {{^isUuid}}
+  "{{baseName}}" varchar(255) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+    {{/isUuid}}
+  {{/isEnum}}
+  {{#isEnum}}
+  "{{baseName}}" varchar(20) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isEnum}}
+  {{#isUuid}}
+  "{{baseName}}" varchar(64) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isUuid}}
+  {{/isString}}
+  {{#isBoolean}}
+  "{{baseName}}" varchar(1) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isBoolean}}
+  {{#isDate}}
+  "{{baseName}}" timestamp(0) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isDate}}
+  {{#isDateTime}}
+  "{{baseName}}" timestamp(3) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isDateTime}}
+  {{#isByteArray}}
+  "{{baseName}}" text {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isByteArray}}
+  {{#isEmail}}
+  "{{baseName}}" varchar(255) {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isEmail}}
+  {{#isFreeFormObject}}
+  "{{baseName}}" text {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isFreeFormObject}}
+  {{#isListContainer}}
+  "{{baseName}}" text {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isListContainer}}
+  {{#isMapContainer}}
+  "{{baseName}}" text {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isMapContainer}}
+  {{#isFile}}
+  "{{baseName}}" text {{#isNullable}}NOT NULL{{/isNullable}}{{#hasMore}},{{/hasMore}}
+  {{/isFile}}
