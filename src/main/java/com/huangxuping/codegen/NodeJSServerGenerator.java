@@ -34,6 +34,10 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
     public static final String DATABASE_TYPE = "db";
     public static final String M2M_TOKEN = "m2mToken";
     public static final String USER_TOKEN = "userToken";
+    public static final String CREATED_BY = "createdBy";
+    public static final String UPDATED_BY = "updatedBy";
+    public static final String CREATED_AT = "createdAt";
+    public static final String UPDATED_AT = "updatedAt";
 
     protected String exportedName;
     private GeneratorUtil generatorUtil = new GeneratorUtil();
@@ -71,6 +75,9 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 ".test.js");       // the extension for each file to write
         apiTestTemplateFiles.put(
                 "unit.service.mustache",   // the template to use
+                ".test.js");       // the extension for each file to write
+        apiTestTemplateFiles.put(
+                "joi.service.mustache",   // the template to use
                 ".test.js");       // the extension for each file to write
 
         /*
@@ -118,6 +125,14 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 "whether need machine token"));
         cliOptions.add(new CliOption(USER_TOKEN,
                 "whether need user token"));
+        cliOptions.add(new CliOption(CREATED_BY,
+                "createdBy field name"));
+        cliOptions.add(new CliOption(UPDATED_BY,
+                "updatedBy field name"));
+        cliOptions.add(new CliOption(CREATED_AT,
+                "createdAt field name"));
+        cliOptions.add(new CliOption(UPDATED_AT,
+                "updatedAt filed name"));
 
         this.setSkipOverwrite(false);
     }
@@ -204,6 +219,12 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
             String stringToMatch = "controller" + File.separator;
             String replacement =  implFolder + File.separator + "../../unit" + File.separator;
             result = result.replace(stringToMatch, replacement).replace("api.","service.");
+        }
+
+        if (templateName.equalsIgnoreCase(("joi.service.mustache"))) {
+            String stringToMatch = "controller" + File.separator;
+            String replacement =  implFolder + File.separator + "../../joi" + File.separator;
+            result = result.replace(stringToMatch, replacement).replace("api.","service.joi.");
         }
         return result;
     }
@@ -421,6 +442,30 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
             needUserToken = Boolean.parseBoolean(additionalProperties.get(USER_TOKEN).toString());
         }
         this.additionalProperties.put(USER_TOKEN, needUserToken);
+
+        String createdBy = "createdBy";
+        if (additionalProperties.containsKey(CREATED_BY)) {
+            createdBy = additionalProperties.get(CREATED_BY).toString();
+        }
+        this.additionalProperties.put(CREATED_BY, createdBy);
+
+        String updatedBy = "updatedBy";
+        if (additionalProperties.containsKey(UPDATED_BY)) {
+            updatedBy = additionalProperties.get(UPDATED_BY).toString();
+        }
+        this.additionalProperties.put(UPDATED_BY, updatedBy);
+
+        String createdAt = "createdAt";
+        if (additionalProperties.containsKey(CREATED_AT)) {
+            createdAt = additionalProperties.get(CREATED_AT).toString();
+        }
+        this.additionalProperties.put(CREATED_AT, createdAt);
+
+        String updatedAt = "updatedAt";
+        if (additionalProperties.containsKey(UPDATED_AT)) {
+            updatedAt = additionalProperties.get(UPDATED_AT).toString();
+        }
+        this.additionalProperties.put(UPDATED_AT, updatedAt);
 
         if (additionalProperties.containsKey(DATABASE_TYPE)) {
             String dbType = additionalProperties.get(DATABASE_TYPE).toString().toLowerCase().trim();

@@ -1,0 +1,42 @@
+/**
+* Joi validation unit test of the {{baseName}}.
+*/
+const _ = require('lodash');
+const merge = require('merge-deep');
+const format = require('string-format');
+const Jod = require('../../lib/jod');
+const testData = require('../../lib/testData');
+const {{classname}}Service = require('../../src/service/{{classname}}');
+const { IT_TITLE } = require('../../lib/testConstants');
+const { joiIt } = require('../../lib/testHelper');
+
+module.exports = describe('{{baseName}} resource', () => {
+{{#operations}}
+  {{#operation}}
+    xdescribe('{{operationIdSnakeCase}} endpoint', () => {
+      const Body = testData.{{baseName}}.{{operationId}}Body();
+      const joiParams = [
+        { field: 'payload', items: Jod.object().keys().data },
+        { field: 'payload.name', items: Jod.string().max(100).required().data },
+        { field: 'payload[0].employeeName', items: Jod.string().data }
+      ];
+
+      joiParams.forEach((param) => {
+        param.items.forEach((item) => {
+          const body = merge(Body);
+          _.set(body, param.field, item.value);
+          const title = format(IT_TITLE, param.field, item.reason);
+          joiIt(
+            title,
+            {{classname}}Service.{{operationId}},
+            param.field,
+            [body],
+            item.message
+          );
+        });
+      });
+    })
+  {{/operation}}
+
+{{/operations}}
+})

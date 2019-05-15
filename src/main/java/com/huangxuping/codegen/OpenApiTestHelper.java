@@ -107,7 +107,7 @@ public class OpenApiTestHelper {
 
     static private ArrayList<PostmanTest> analyzeSearchOperationTest(CodegenOperation operation) {
         ArrayList<PostmanTest> tests = new ArrayList<PostmanTest>();
-        tests.add(new PostmanTest("200 - get all"));
+        tests.add(new PostmanTest("200 - should success when get all"));
         if ( operation.allParams != null ) {
             for (CodegenParameter param : operation.allParams) {
                 PostmanParam pp = new PostmanParam(param);
@@ -115,7 +115,7 @@ public class OpenApiTestHelper {
             }
             tests.addAll(PostmanTest.getSearchTests("search"));
         }
-        tests.add(new PostmanTest("400 - null value"));
+        tests.add(new PostmanTest("400 - should fail when null value"));
         ArrayList respTests = analyzeOperationResponseTest(operation);
         tests.addAll(respTests);
 
@@ -206,7 +206,7 @@ public class OpenApiTestHelper {
                 tests.addAll(handleParam(pp));
             }
         }
-        tests.add(new PostmanTest("400 - null value"));
+        tests.add(new PostmanTest("400 - should fail when null value"));
         ArrayList respTests = analyzeOperationResponseTest(operation);
         tests.addAll(respTests);
 
@@ -230,7 +230,7 @@ public class OpenApiTestHelper {
         }
 
         tests.addAll(PostmanTest.getUpdateTests("update"));
-        tests.add(new PostmanTest("400 - null value"));
+        tests.add(new PostmanTest("400 - should fail when null value"));
         ArrayList respTests = analyzeOperationResponseTest(operation);
         tests.addAll(respTests);
 
@@ -254,7 +254,7 @@ public class OpenApiTestHelper {
         }
 
         tests.addAll(PostmanTest.getUpdateTests("update"));
-        tests.add(new PostmanTest("400 - null value"));
+        tests.add(new PostmanTest("400 - should fail when null value"));
         ArrayList respTests = analyzeOperationResponseTest(operation);
         tests.addAll(respTests);
         for (PostmanTest test : tests) {
@@ -287,7 +287,7 @@ public class OpenApiTestHelper {
             tests.addAll(findBodyTests(operation.bodyParam));
         }
         tests.addAll(PostmanTest.getCreateTests("create"));
-        tests.add(new PostmanTest("400 - null value"));
+        tests.add(new PostmanTest("400 - should fail when null value"));
         ArrayList respTests = analyzeOperationResponseTest(operation);
         tests.addAll(respTests);
         for (PostmanTest test : tests) {
@@ -305,7 +305,7 @@ public class OpenApiTestHelper {
             }
         }
         tests.addAll(PostmanTest.getDeleteTests("delete"));
-        tests.add(new PostmanTest("400 - null value"));
+        tests.add(new PostmanTest("400 - should fail when null value"));
         ArrayList respTests = analyzeOperationResponseTest(operation);
         tests.addAll(respTests);
 

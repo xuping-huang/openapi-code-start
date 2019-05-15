@@ -1,23 +1,87 @@
 /*
 * Test data for all resources
 */
+const config = require('config');
+const httpStatus = require('http-status');
+const constants = require('./testConstants');
 
-module.exports.Host = `http://localhost:${config.PORT}`
+const DEFAULT_PAGE = 0;
+const DEFAULT_PAGE_SIZE = 20;
+module.exports.DEFAULT_PAGE = DEFAULT_PAGE;
+module.exports.DEFAULT_PAGE_SIZE = DEFAULT_PAGE_SIZE;
+module.exports.BaseUrl = `http://localhost:${config.port}`;
+module.exports.BEFORE_TEST_START = moment().subtract(10, 'minutes');
+module.exports.NO_EXIST_ID = 1000;
+module.exports.HTTP_STATUS = {
+  CREATE_SUCCESS: httpStatus.CREATED,
+  DELETE_SUCCESS: httpStatus.OK
+};
+const TestUser = {
+  RoleUser1: {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJFSUQiOiJFSUQwMDEiLCJyb2xlIjoiRGlyZWN0b3IiLCJuYW1lIjoiVXNlciAwMDEiLCJ1c2VybmFtZSI6InVzZXIwMDEiLCJ1c2VyQ29tcGV0ZW5jeSI6IiIsImlhdCI6MTU1NzI0MzA3MiwiZXhwIjoxNTU3ODQ3ODcyfQ.CfPGadZRGvKENQ8lLzOEkZ3qfvWkI2KKvJtsEpUUIwg',
+    id: 'EID001',
+    userId: 'EID001'
+  }
+};
+module.exports.TestUser = TestUser;
 
-module.exports.Token = {
-  admin: '',
-  user: '',
-  copilot: '',
-  m2m: '',
-  expired: ''
-}
+/**
+* Return the authorization fail request.
+* @param {String} url url endpoint
+*/
+const authFailRequests = (url, body) => [
+  {
+    title: '401 - should fail when unauthorized request',
+    params: body ? [url, body, null] : [url, null],
+    status: httpStatus.UNAUTHORIZED,
+    message: constants.ErrorMessage.Unauthorized
+  },
+  {
+    title: '401 - should fail when token is expired',
+    params: body ? [url, body, TestUser.Leader1.expired] : [url, TestUser.Leader1.expired],
+    status: httpStatus.UNAUTHORIZED,
+    message: constants.ErrorMessage.Expired
+  },
+  {
+    title: '403 - should fail when not allow to call this service',
+    params: body ? [url, body, TestUser.Manager2.token] : [url, TestUser.Manager2.token],
+    status: httpStatus.FORBIDDEN,
+    message: constants.ErrorMessage.Forbidden
+  }
+];
+module.exports.authFailRequests = authFailRequests;
+
 
 {{#apiInfo}}
   {{#apis}}
 module.exports.{{baseName}} = {
-  createBody: () => {
-    return {}
-  }
+  {{#operations}}
+    {{#operation}}
+  {{operationId}}Body: () => {
+    return {
+    {{#pathParams}}
+      {{paramName}}: 1,
+    {{/pathParams}}
+      payload: {
+      {{#bodyParams}}
+        {{#isModel}}
+          {{#vendorExtensions}}
+            {{#x-refModel}}
+              {{#vars}}
+        {{baseName}}{{#hasMore}},{{/hasMore}}
+              {{/vars}}
+            {{/x-refModel}}
+          {{/vendorExtensions}}
+        {{/isModel}}
+        {{^isModel}}
+        {{baseName}}{{#hasMore}},{{/hasMore}}
+        {{/isModel}}
+      {{/bodyParams}}
+      }
+    }
+  },
+    {{/operation}}
+  {{/operations}}
 }
   {{/apis}}
 {{/apiInfo}}

@@ -1,151 +1,404 @@
 /**
 * E2E test of the {{baseName}}.
 */
-const _ = require('lodash')
-const merge = require('merge-deep')
-const config = require('config')
-const should = require('should')
-const { postRequest, getRequest, putRequest, deleteRequest, patchRequest } = require('../lib/testHelper')
-const { Token } = require('../lib/testData')
-const { loadData } = require('../../scripts/tools')
-const Constants = require('../../src/constants')
+const _ = require('lodash');
+const merge = require('merge-deep');
+const should = require('should');
+const moment = require('moment');
+const httpStatus = require('http-status');
+const models = require('../../src/model/index');
+const testData = require('../lib/testData');
+const {
+  postRequest, getRequest, putRequest, deleteRequest, patchRequest, failIt
+} = require('../lib/testHelper');
 
-const errorCase = new Error('should not throw error here')
-const pathOfMessage = 'response.body.message'
+const USER1_TOKEN = testData.TestUser.RoleUser1.token;
+const USER1_ID = testData.TestUser.RoleUser1.id;
+const TheModel = models.{{baseName}};
 
 module.exports = describe('{{baseName}} resource', () => {
-  let SheetData
-  before(async () => {
-    SheetData = await loadData()
-  })
-
-  {{#operations}}
-    {{#operation}}
-  describe('{{operationIdSnakeCase}} endpoint', () => {
-    const {{operationId}}Url = `http://localhost:${config.PORT}{{path}}`
-    const reqBody = {}
-
-    const format{{operationId}}Url = ({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}) => {
-      const path = `${ {{operationId}}Url }/`
-      return path
-    }
+  let RECORDS = [];
+{{#operations}}
+  {{#operation}}
   {{#vendorExtensions}}
     {{#x-get-method}}
       {{#responses.isListContainer}}
-    const assert{{baseName}}SearchBody = async (record, queryParams, isSuccess) => {
-    }
+  const format{{operationIdCamelCase}}Url = ({{#pathParams}}{{paramName}}, {{/pathParams}} query) => {
+    const uri = `${testData.BaseUrl}{{path}}`
+    return query ? uri + query : uri
+  }
       {{/responses.isListContainer}}
       {{^responses.isListContainer}}
-    const assert{{baseName}}GetBody = async (record, {{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}, isSuccess) => {
-    }
+  const format{{operationIdCamelCase}}Url = ({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}) => {
+    const uri = `${testData.BaseUrl}{{path}}`
+    return uri
+  }
       {{/responses.isListContainer}}
     {{/x-get-method}}
     {{#x-post-method}}
-    const assert{{baseName}}CreateBody = async (record, isSuccess) => {
-    }
+  const format{{operationIdCamelCase}}Url = ({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}) => {
+    const uri = `${testData.BaseUrl}{{path}}`
+    return uri
+  }
     {{/x-post-method}}
     {{#x-delete-method}}
-    const assert{{baseName}}DeleteBody = async (record, isSuccess) => {
-    }
+  const format{{operationIdCamelCase}}Url = ({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}) => {
+    const uri = `${testData.BaseUrl}{{path}}`
+    return uri
+  }
     {{/x-delete-method}}
     {{#x-put-method}}
-    const assert{{baseName}}UpdateBody = async (record, {{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}, isSuccess) => {
-    }
+  const format{{operationIdCamelCase}}Url = ({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}) => {
+    const uri = `${testData.BaseUrl}{{path}}`
+    return uri
+  }
     {{/x-put-method}}
     {{#x-patch-method}}
-    const assert{{baseName}}PartialUpdateBody = async (record, {{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}, isSuccess) => {
-    }
+  const format{{operationIdCamelCase}}Url = ({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}) => {
+    const uri = `${testData.BaseUrl}{{path}}`
+    return uri
+  }
     {{/x-patch-method}}
   {{/vendorExtensions}}
-
-    before(async () => {
-    })
-
+  {{/operation}}
+{{/operations}}
+  {{#operations}}
+    {{#operation}}
+  xdescribe('{{operationIdSnakeCase}} endpoint', () => {
+    const Payload = {
+      {{#pathParams}}
+      {{paramName}}: 1,
+      {{/pathParams}}
+      body: {
+      {{#bodyParams}}
+        {{#isModel}}
+          {{#vendorExtensions}}
+            {{#x-refModel}}
+              {{#vars}}
+        {{baseName}}{{#hasMore}},{{/hasMore}}
+              {{/vars}}
+            {{/x-refModel}}
+          {{/vendorExtensions}}
+        {{/isModel}}
+        {{^isModel}}
+        {{baseName}}{{#hasMore}},{{/hasMore}}
+        {{/isModel}}
+      {{/bodyParams}}
+      }
+    };
+    describe('success request', () => {
+      before(async () => {
+        RECORDS = await TheModel.findAll();
+      });
+    {{#vendorExtensions}}
+      {{#x-get-method}}
+        {{#responses.isListContainer}}
+      const assert{{baseName}}SearchBody = async (record, coll, isPagination = false, page = testData.DEFAULT_PAGE, pageSize = testData.DEFAULT_PAGE_SIZE) => {
+        if (!isPagination) {
+          should.equal(record.total, coll.length);
+        } else {
+          should.equal(record.total, RECORDS.length);
+        }
+        should.equal(record.page, page);
+        should.equal(record.pageSize, pageSize);
+        record.items.forEach((item) => {
+          const found = coll.find(col => String(col.id) === String(item.id));
+      {{#bodyParams}}
+        {{#isModel}}
+          {{#vendorExtensions}}
+            {{#x-refModel}}
+              {{#vars}}
+          should.equal(record.{{baseName}}, obj.{{baseName}});
+              {{/vars}}
+            {{/x-refModel}}
+          {{/vendorExtensions}}
+        {{/isModel}}
+        {{^isModel}}
+          should.equal(record.{{baseName}}, obj.{{baseName}});
+        {{/isModel}}
+      {{/bodyParams}}
+          should.equal(item.{{createdBy}}, found.{{createdBy}});
+          should.equal(item.{{updatedBy}}, found.{{updatedBy}});
+          should.equal(true, moment(item.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
+          should.equal(item.{{createdAt}}, item.{{updatedAt}});
+        });
+      }
+        {{/responses.isListContainer}}
+        {{^responses.isListContainer}}
+      const assert{{baseName}}GetBody = async (record, obj) => {
+        should.equal(record.id, obj.id);
+      {{#bodyParams}}
+        {{#isModel}}
+          {{#vendorExtensions}}
+            {{#x-refModel}}
+              {{#vars}}
+        should.equal(record.{{baseName}}, obj.{{baseName}});
+              {{/vars}}
+            {{/x-refModel}}
+          {{/vendorExtensions}}
+        {{/isModel}}
+        {{^isModel}}
+        should.equal(record.{{baseName}}, obj.{{baseName}});
+        {{/isModel}}
+      {{/bodyParams}}
+        should.equal(record.{{createdBy}}, obj.{{createdBy}});
+        should.equal(record.{{updatedBy}}, obj.{{updatedBy}});
+        should.equal(true, moment(record.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
+        should.equal(record.{{createdAt}}, moment(obj.{{createdAt}}).toISOString());
+        should.equal(record.{{updatedAt}}, moment(obj.{{updatedAt}}).toISOString());
+      }
+        {{/responses.isListContainer}}
+      {{/x-get-method}}
+      {{#x-post-method}}
+      const assert{{baseName}}CreateBody = async (record, obj, currentUserId) => {
+      {{#bodyParams}}
+        {{#isModel}}
+          {{#vendorExtensions}}
+            {{#x-refModel}}
+              {{#vars}}
+        should.equal(record.{{baseName}}, obj.{{baseName}});
+              {{/vars}}
+            {{/x-refModel}}
+          {{/vendorExtensions}}
+        {{/isModel}}
+        {{^isModel}}
+        should.equal(record.{{baseName}}, obj.{{baseName}});
+        {{/isModel}}
+      {{/bodyParams}}
+        if (currentUserId) {
+          should.equal(record.id, obj.id);
+          should.equal(record.{{createdBy}}, currentUserId);
+          should.equal(record.{{updatedBy}}, currentUserId);
+          should.equal(true, moment(record.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
+          should.equal(record.{{createdAt}}, record.{{updatedAt}});
+          should.equal(record.{{createdAt}}, moment(obj.{{createdAt}}).toISOString());
+          should.equal(record.{{updatedAt}}, moment(obj.{{updatedAt}}).toISOString());
+        }
+      }
+      {{/x-post-method}}
+      {{#x-delete-method}}
+      {{/x-delete-method}}
+      {{#x-put-method}}
+      const assert{{baseName}}UpdateBody = async (record, obj, currentUserId) => {
+      {{#bodyParams}}
+        {{#isModel}}
+        {{#vendorExtensions}}
+        {{#x-refModel}}
+        {{#vars}}
+        should.equal(record.{{baseName}}, obj.{{baseName}});
+        {{/vars}}
+        {{/x-refModel}}
+        {{/vendorExtensions}}
+        {{/isModel}}
+        {{^isModel}}
+        should.equal(record.{{baseName}}, obj.{{baseName}});
+        {{/isModel}}
+      {{/bodyParams}}
+        if (currentUserId) {
+          should.equal(record.id, obj.id);
+          should.equal(record.{{updatedBy}}, currentUserId);
+          should.equal(record.{{createdBy}}, obj.{{createdBy}});
+          should.equal(record.{{updatedBy}}, obj.{{updatedBy}});
+          should.equal(true, moment(record.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
+          should.equal(true, moment(record.{{updatedAt}}).isAfter(moment(record.{{createdAt}})));
+          should.equal(record.{{createdAt}}, moment(obj.{{createdAt}}).toISOString());
+          should.equal(record.{{updatedAt}}, moment(obj.{{updatedAt}}).toISOString());
+        }
+      }
+      {{/x-put-method}}
+      {{#x-patch-method}}
+      const assert{{baseName}}PartialUpdateBody = async (record, obj, currentUserId) => {
+        should.equal(record.name, obj.name);
+      {{#bodyParams}}
+        {{#isModel}}
+          {{#vendorExtensions}}
+            {{#x-refModel}}
+              {{#vars}}
+        should.equal(record.{{baseName}}, obj.{{baseName}});
+              {{/vars}}
+            {{/x-refModel}}
+          {{/vendorExtensions}}
+        {{/isModel}}
+        {{^isModel}}
+        should.equal(record.{{baseName}}, obj.{{baseName}});
+        {{/isModel}}
+      {{/bodyParams}}
+        if (currentUserId) {
+          should.equal(record.id, obj.id);
+          should.equal(record.{{updatedBy}}, currentUserId);
+          should.equal(record.{{createdBy}}, obj.{{createdBy}});
+          should.equal(record.{{updatedBy}}, obj.{{updatedBy}});
+          should.equal(true, moment(record.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
+          should.equal(true, moment(record.{{updatedAt}}).isAfter(moment(record.{{createdAt}})));
+          should.equal(record.{{createdAt}}, moment(obj.{{createdAt}}).toISOString());
+          should.equal(record.{{updatedAt}}, moment(obj.{{updatedAt}}).toISOString());
+        }
+      }
+      {{/x-patch-method}}
+    {{/vendorExtensions}}
     {{#vendorExtensions}}
       {{#x-valid-methods}}
-    it('{{title}}', async () => {
-      {{#isFailValidate}}
-      try {
-        {{#isCreate}}
-        const body = merge(reqBody, { })
-        await postRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
-        {{/isCreate}}
-        {{#isDeleteById}}
-        await deleteRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
-        {{/isDeleteById}}
-        {{#isGetById}}
-        await getRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
-        {{/isGetById}}
-        {{#isSearch}}
-        const queryParams = {
-          {{#queryParams}}{{paramName}}: '{{paramName}}'{{#hasMore}},{{/hasMore}}
-          {{/queryParams}}
-        }
-        await getRequest(format{{operationId}}Url(queryParams), {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
-        {{/isSearch}}
-        {{#isUpdateById}}
-        const body = merge(reqBody, { })
-        await putRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
-        {{/isUpdateById}}
-        {{#isPartialUpdateById}}
-        const body = merge(reqBody, { })
-        await patchRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, {{^isForbiddenToken}}{{^isTokenExpired}}{{^isNoAuth}}Token.user1{{/isNoAuth}}{{/isTokenExpired}}{{/isForbiddenToken}}{{#isNoAuth}}null{{/isNoAuth}}{{#isTokenExpired}}Token.expired{{/isTokenExpired}}{{#isForbiddenToken}}Token.forbidden{{/isForbiddenToken}})
-        {{/isPartialUpdateById}}
-        throw errorCase
-      } catch (err) {
-        should.equal(err.status, {{statusCode}})
-        should.equal(`message required`, _.get(err, pathOfMessage))
-      }
-      {{/isFailValidate}}
-      {{^isFailValidate}}
-      {{#isGetById}}
-      const res = await getRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), Token.user1)
-      should.equal(res.status, {{statusCode}})
-      const record = res.body
-      await assert{{baseName}}GetBody(record, {{#pathParams}}record.{{paramName}},{{/pathParams}} record, true)
-      {{/isGetById}}
-      {{#isSearch}}
-      const queryParams = {
-        {{#queryParams}}{{paramName}}: '{{paramName}}'{{#hasMore}},{{/hasMore}}
-        {{/queryParams}}
-      }
-      const res = await getRequest(format{{operationId}}Url(queryParams), Token.user1)
-      should.equal(res.status, {{statusCode}})
-      const record = res.body
-      await assert{{baseName}}SearchBody(record, queryParams, true)
-      {{/isSearch}}
-      {{#isCreate}}
-      const body = merge(reqBody, { })
-      const res = await postRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, Token.user1)
-      should.equal(res.status, {{statusCode}})
-      const record = res.body
-      await assert{{baseName}}CreateBody(record, true)
-      {{/isCreate}}
-      {{#isUpdateById}}
-      const body = merge(reqBody, { })
-      const res = await putRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, Token.user1)
-      should.equal(res.status, {{statusCode}})
-      const record = res.body
-      await assert{{baseName}}UpdateBody(record, true)
-      {{/isUpdateById}}
-      {{#isPartialUpdateById}}
-      const body = merge(reqBody, { })
-      const res = await patchRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, Token.user1)
-      should.equal(res.status, {{statusCode}})
-      const record = res.body
-      await assert{{baseName}}PartialUpdateBody(record, true)
-      {{/isPartialUpdateById}}
-      {{#isDeleteById}}
-      const res = await deleteRequest(format{{operationId}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), Token.user1)
-      should.equal(res.status, {{statusCode}})
-      const record = res.body
-      await assert{{baseName}}DeleteBody(record, true)
-      {{/isDeleteById}}
-      {{/isFailValidate}}
-    })
-
+        {{^isFailValidate}}
+      xit('{{title}}', async () => {
+      {{#x-get-method}}
+        {{#responses.isListContainer}}
+        const {
+        {{#pathParams}}
+          {{paramName}}{{#hasMore}},{{/hasMore}}
+        {{/pathParams}}
+        } = Payload
+        const res = await getRequest(format{{operationIdCamelCase}}Url(queryParams), USER1_TOKEN)
+        should.equal(res.status, httpStatus.OK);
+        const record = res.body;
+        const filters = RECORDS.filter(item => String(item.id) === 'filter condition');
+        await assert{{baseName}}SearchBody(record, filters)
+        {{/responses.isListContainer}}
+        {{^responses.isListContainer}}
+        const {
+        {{#pathParams}}
+          {{paramName}}{{#hasMore}},{{/hasMore}}
+        {{/pathParams}}
+        } = Payload
+        const res = await getRequest(format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}), USER1_TOKEN)
+        should.equal(res.status, httpStatus.OK)
+        const record = res.body;
+        const obj = await TheModel.findOne({ where: { id: 'get id' }, paranoid: false });
+        await assert{{baseName}}GetBody(record, obj);
+        {{/responses.isListContainer}}
+      {{/x-get-method}}
+      {{#x-post-method}}
+        const {
+        {{#pathParams}}
+          {{paramName}},
+        {{/pathParams}}
+          body
+        } = Payload
+        const oldObj = await TheModel.findOne({ where: { id: 'new id' }, paranoid: false });
+        should.equal(true, _.isNull(oldObj));
+        const before = moment()
+        const res = await postRequest(format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, USER1_TOKEN)
+        should.equal(res.status, testData.HTTP_STATUS.CREATE_SUCCESS)
+        const obj = await TheModel.findOne({ where: { id: 'new id' }, paranoid: false });
+        const record = res.body
+        should.equal(true, moment(record.{{createdAt}}).isAfter(before));
+        await assert{{baseName}}CreateBody(record, obj, USER1_ID);
+        await assert{{baseName}}CreateBody(record, body);
+      {{/x-post-method}}
+      {{#x-put-method}}
+        const {
+        {{#pathParams}}
+          {{paramName}},
+        {{/pathParams}}
+          body
+        } = Payload
+        const oldObj = await TheModel.findOne({ where: { id: 'updated id' }, paranoid: false });
+        const res = await putRequest(format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, USER1_TOKEN)
+        should.equal(res.status, httpStatus.OK)
+        const record = res.body
+        const obj = await TheModel.findOne({ where: { id: 'updated id' }, paranoid: false });
+        await assert{{baseName}}UpdateBody(oldObj, obj)
+        await assert{{baseName}}UpdateBody(record, obj, USER1_ID);
+        await assert{{baseName}}UpdateBody(record, body)
+      {{/x-put-method}}
+      {{#x-patch-method}}
+        const {
+        {{#pathParams}}
+          {{paramName}},
+        {{/pathParams}}
+          body
+        } = Payload
+        const oldObj = await TheModel.findOne({ where: { id: 'updated id' }, paranoid: false });
+        const res = await patchRequest(format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), body, USER1_TOKEN)
+        should.equal(res.status, httpStatus.OK)
+        const record = res.body
+        const obj = await TheModel.findOne({ where: { id: 'updated id' }, paranoid: false });
+        await assert{{baseName}}PartialUpdateBody(oldObj, obj)
+        await assert{{baseName}}PartialUpdateBody(record, obj, USER1_ID);
+        await assert{{baseName}}PartialUpdateBody(record, true)
+      {{/x-patch-method}}
+      {{#x-delete-method}}
+        const {
+        {{#pathParams}}
+          {{paramName}}{{#hasMore}},{{/hasMore}}
+        {{/pathParams}}
+        } = Payload
+        const oldObj = await TheModel.findOne({ where: { id: 'deleted id' }, paranoid: false });
+        should.exist(oldObj);
+        const res = await deleteRequest(format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/pathParams}}), USER1_TOKEN)
+        should.equal(res.status, testData.HTTP_STATUS.DELETE_SUCCESS)
+        const obj = await TheModel.findOne({ where: { id: 'deleted id' }, paranoid: false });
+        should.equal(true, _.isNull(obj));
+      {{/x-delete-method}}
+      });
+        {{/isFailValidate}}
       {{/x-valid-methods}}
     {{/vendorExtensions}}
+    });
+    xdescribe('fail request', () => {
+      const {
+        {{#pathParams}}
+        {{paramName}},
+        {{/pathParams}}
+        body
+      } = PayLoad;
+  {{#vendorExtensions}}
+  {{#x-post-method}}
+      const params = [format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}), body, USER1_TOKEN]
+  {{/x-post-method}}
+  {{#x-delete-method}}
+      const params = [format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}), USER1_TOKEN]
+  {{/x-delete-method}}
+  {{#x-get-method}}
+    {{#responses.isListContainer}}
+      const params = [format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}, {{/pathParams}}'?query=1'), USER1_TOKEN]
+    {{/responses.isListContainer}}
+    {{^responses.isListContainer}}
+      const params = [format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}), USER1_TOKEN]
+    {{/responses.isListContainer}}
+  {{/x-get-method}}
+  {{#x-put-method}}
+      const params = [format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}), body, USER1_TOKEN]
+  {{/x-put-method}}
+  {{#x-patch-method}}
+      const params = [format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}}), body, USER1_TOKEN]
+  {{/x-patch-method}}
+  {{/vendorExtensions}}
+      const requests = [
+      {{#vendorExtensions}}
+        {{#x-valid-methods}}
+          {{#isFailValidate}}
+        {
+          title: '{{title}}',
+          params,
+          {{#isBadRequest}}
+          status: httpStatus.BAD_REQUEST,
+          {{/isBadRequest}}
+          {{#isNotFound}}
+          status: httpStatus.NOT_FOUND,
+          {{/isNotFound}}
+          {{#isConflict}}
+          status: httpStatus.CONFLICT,
+          {{/isConflict}}
+          {{#isUnauthorized}}
+          status: httpStatus.UNAUTHORIZED,
+          {{/isUnauthorized}}
+          {{#isForbidden}}
+          status: httpStatus.FORBIDDEN,
+          {{/isForbidden}}{{^isBadRequest}}{{^isNotFound}}{{^isConflict}}{{^isUnauthorized}}{{^isForbidden}}
+          status: {{statusCode}},
+          {{/isForbidden}}{{/isUnauthorized}}{{/isConflict}}{{/isNotFound}}{{/isBadRequest}}
+          message: "Jom.mustPositive('id').message"
+        },
+          {{/isFailValidate}}
+        {{/x-valid-methods}}
+      {{/vendorExtensions}}
+      ];
+      requests.push(...testData.authFailRequests(format{{operationIdCamelCase}}Url({{#pathParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/pathParams}})));
+      requests.forEach((request) => {
+        request.operation = {{#vendorExtensions}}{{#x-patch-method}}patchRequest{{/x-patch-method}}{{#x-put-method}}putRequest{{/x-put-method}}{{#x-get-method}}getRequest{{/x-get-method}}{{#x-post-method}}postRequest{{/x-post-method}}{{#x-delete-method}}deleteRequest{{/x-delete-method}}{{/vendorExtensions}};
+        failIt(request);
+      });
+    });
   })
     {{/operation}}
 
