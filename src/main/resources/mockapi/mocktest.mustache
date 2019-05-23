@@ -1,0 +1,77 @@
+/**
+* E2E test of {{openAPI.info.title}}
+*/
+const _ = require('lodash');
+const fs = require('fs');
+const path = require('path');
+const should = require('should');
+const httpStatus = require('http-status');
+
+const {
+  postRequest, getRequest, putRequest, deleteRequest, patchRequest, headRequest
+} = require('../lib/testHelper');
+
+const mockData = JSON.parse(fs.readFileSync(path.join(__dirname, 'mock-microservice.json')));
+const BASE_URL = 'http://localhost:3000/{{contextPath}}';
+
+module.exports = describe('{{openAPI.info.title}}', () => {
+  const assertBody = (body, record) => {
+    if (_.isArray(body)) {
+      should.equal(true, _.isArray(record));
+      should.equal(body.length, record.length);
+      for (let i = 0; i < body.length; i += 1) {
+        should.deepEqual(body[i], record[i]);
+      }
+    } else {
+      should.deepEqual(body, record);
+    }
+  };
+
+  describe('Endpoint', () => {
+{{#apiInfo}}
+  {{#apis}}
+    {{#operations}}
+      {{#operation}}
+    it('200 - {{httpMethod}} {{path}}', async () => {
+    {{#vendorExtensions}}
+      {{#x-get-method}}
+      const res = await getRequest(`${BASE_URL}{{path}}{{#hasQueryParams}}?{{#queryParams}}{{baseName}}=abc{{/queryParams}}{{#hasMore}}&{{/hasMore}}{{/hasQueryParams}}`);
+      {{/x-get-method}}
+      {{#x-post-method}}
+      const res = await postRequest(`${BASE_URL}{{path}}{{#hasQueryParams}}?{{#queryParams}}{{baseName}}=abc{{/queryParams}}{{#hasMore}}&{{/hasMore}}{{/hasQueryParams}}`, mockData.{{returnBaseType}});
+      {{/x-post-method}}
+      {{#x-put-method}}
+      const res = await putRequest(`${BASE_URL}{{path}}{{#hasQueryParams}}?{{#queryParams}}{{baseName}}=abc{{/queryParams}}{{#hasMore}}&{{/hasMore}}{{/hasQueryParams}}`, mockData.{{returnBaseType}});
+      {{/x-put-method}}
+      {{#x-patch-method}}
+      const res = await patchRequest(`${BASE_URL}{{path}}{{#hasQueryParams}}?{{#queryParams}}{{baseName}}=abc{{/queryParams}}{{#hasMore}}&{{/hasMore}}{{/hasQueryParams}}`, mockData.{{returnBaseType}});
+      {{/x-patch-method}}
+      {{#x-delete-method}}
+      const res = await deleteRequest(`${BASE_URL}{{path}}{{#hasQueryParams}}?{{#queryParams}}{{baseName}}=abc{{/queryParams}}{{#hasMore}}&{{/hasMore}}{{/hasQueryParams}}`);
+      {{/x-delete-method}}
+      {{#x-head-method}}
+      const res = await headRequest(`${BASE_URL}{{path}}{{#hasQueryParams}}?{{#queryParams}}{{baseName}}=abc{{/queryParams}}{{#hasMore}}&{{/hasMore}}{{/hasQueryParams}}`);
+      {{/x-head-method}}
+      should.equal(res.status, httpStatus.OK);
+
+      {{^x-delete-method}}
+        {{^x-head-method}}
+      assertBody(res.body, mockData.{{returnBaseType}});
+        {{/x-head-method}}
+      {{/x-delete-method}}
+      {{#x-delete-method}}
+      should.equal(true, _.isEmpty(res.body));
+      {{/x-delete-method}}
+      {{#x-head-method}}
+      should.equal(true, _.isEmpty(res.body));
+      {{/x-head-method}}
+    });
+      {{/vendorExtensions}}
+      {{/operation}}
+    {{/operations}}
+  {{/apis}}
+{{/apiInfo}}
+  });
+});
+
+

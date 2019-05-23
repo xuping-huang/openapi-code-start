@@ -85,6 +85,9 @@ public class GeneratorUtil {
                 case "patch":
                     operation.vendorExtensions.put("x-patch-method", true);
                     break;
+                case "head":
+                    operation.vendorExtensions.put("x-head-method", true);
+                    break;
             }
         }
     }

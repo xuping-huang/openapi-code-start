@@ -1,0 +1,92 @@
+/*
+* Copyright (c) 2019
+*/
+const Joi = require('@hapi/joi')
+const fs = require('fs')
+const { celebrate } = require('celebrate')
+const schemas = require('./mock-schemas.js')
+const mockData = JSON.parse(fs.readFileSync('./mock-microservice.json'))
+
+let endpointCallCount = 0
+
+function buildHandler (responseCode, responseName, methodName, isFilter) {
+  return (req, res) => {
+    endpointCallCount += 1
+    console.log(`${endpointCallCount} ${methodName} Responding: ${responseName}`)
+    if (isFilter) {
+      try {
+        JSON.parse(req.query.filter)
+      } catch (err) {
+        res.status(400).json({ message: 'Filter content should be the result of a valid JSON object stringify.' })
+      }
+    }
+    if (responseName) {
+      res.status(responseCode).json(mockData[responseName])
+    } else {
+    res.sendStatus(responseCode)
+    }
+  }
+}
+
+function wrapHandlers (handlerDef) {
+  return [celebrate(handlerDef.schema), handlerDef.handler]
+}
+
+function buildSendPdfFile (methodName) {
+  return (req, res) => {
+    endpointCallCount += 1
+    console.log(`${endpointCallCount} ${methodName} Responding pdfFile.pdf`)
+    res.download('./data/files/pdfFile.pdf', 'pdfFile.pdf')
+  }
+}
+
+{{#apiInfo}}
+  {{#apis}}
+    {{#operations}}
+      {{#operation}}
+const {{operationId}} = wrapHandlers({
+  handler: buildHandler(200, {{#vendorExtensions}}{{#x-delete-method}}null{{/x-delete-method}}{{^x-delete-method}}'{{returnBaseType}}{{#isListContainer}}Coll{{/isListContainer}}'{{/x-delete-method}}{{/vendorExtensions}}, '{{operationId}}'),
+  schema: {
+    {{#hasPathParams}}
+    params: {
+      {{#pathParams}}
+    {{> sub.joiParam}}{{#hasMore}},{{/hasMore}}
+      {{/pathParams}}
+    },
+    {{/hasPathParams}}
+    {{#hasQueryParams}}
+    query: {
+      {{#queryParams}}
+    {{> sub.joiParam}}{{#hasMore}},{{/hasMore}}
+      {{/queryParams}}
+    },
+    {{/hasQueryParams}}
+{{#vendorExtensions}}
+{{^x-delete-method}}
+  {{^x-get-method}}
+    {{^x-head-method}}
+    {{#hasBodyParam}}
+    body: schemas.{{returnBaseType}}
+    {{/hasBodyParam}}
+    {{/x-head-method}}
+  {{/x-get-method}}
+{{/x-delete-method}}
+{{/vendorExtensions}}
+  }
+})
+      {{/operation}}
+    {{/operations}}
+  {{/apis}}
+{{/apiInfo}}
+
+module.exports = {
+{{#apiInfo}}
+  {{#apis}}
+    {{#operations}}
+      {{#operation}}
+  {{operationId}},
+      {{/operation}}
+    {{/operations}}
+  {{/apis}}
+{{/apiInfo}}
+}

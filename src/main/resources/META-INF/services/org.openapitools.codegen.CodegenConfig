@@ -1,3 +1,4 @@
 com.huangxuping.codegen.JSpringGenerator
 com.huangxuping.codegen.PostmanGenerator
 com.huangxuping.codegen.NodeJSServerGenerator
+com.huangxuping.codegen.MockApiGenerator

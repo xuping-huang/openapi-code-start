@@ -1,0 +1,23 @@
+const express = require('express')
+const app = express()
+const helper = require('./common/helper')
+const mockApi = require('./services/mock-api')
+
+const mockRoutes = express.Router()
+
+{{#apiInfo}}
+  {{#apis}}
+    {{#operations}}
+      {{#operation}}
+        {{#userToken}}
+mockRoutes.{{httpMethod}}('{{path}}', [helper.validateJWTTokenExists, mockApi.{{operationId}}])
+        {{/userToken}}
+        {{^userToken}}
+mockRoutes.{{httpMethod}}('{{path}}', mockApi.{{operationId}})
+        {{/userToken}}
+      {{/operation}}
+    {{/operations}}
+  {{/apis}}
+{{/apiInfo}}
+
+app.use('/base', mockRoutes)
