@@ -60,10 +60,10 @@ module.exports = describe('{{openAPI.info.title}}', () => {
         {{/x-head-method}}
       {{/x-delete-method}}
       {{#x-delete-method}}
-      should.equal(true, _.isEmpty(res.body));
+      should.equal(true, _.isEmpty(res.body) && _.isEmpty(res.text));
       {{/x-delete-method}}
       {{#x-head-method}}
-      should.equal(true, _.isEmpty(res.body));
+      should.equal(true, _.isEmpty(res.body) && _.isEmpty(res.text));
       {{/x-head-method}}
     });
       {{/vendorExtensions}}

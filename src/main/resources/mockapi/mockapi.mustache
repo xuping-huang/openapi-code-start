@@ -23,7 +23,7 @@ function buildHandler (responseCode, responseName, methodName, isFilter) {
     if (responseName) {
       res.status(responseCode).json(mockData[responseName])
     } else {
-    res.sendStatus(responseCode)
+      res.status(responseCode).send()
     }
   }
 }
