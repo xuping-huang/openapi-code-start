@@ -109,6 +109,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         supportingFiles.add(new SupportingFile("route.operation.mustache", "./src", "routes.js"));
         supportingFiles.add(new SupportingFile("db.tools.mustache", "./scripts", "tools.js"));
         supportingFiles.add(new SupportingFile("assert.mustache", "./test/lib", "assert.js"));
+        supportingFiles.add(new SupportingFile("testData.mustache", "./test/lib", "testData.js"));
         supportingFiles.add(new SupportingFile("e2e.index.mustache", "./test/e2e", "test.js"));
         supportingFiles.add(new SupportingFile("unit.index.mustache", "./test/unit", "test.js"));
 

@@ -334,7 +334,7 @@ module.exports = describe('{{baseName}} resource', () => {
           title: '404 - {{caseReturnType}}Id: should fail when not exist',
           params: [td.NO_EXIST_ID],
           status: httpStatus.NOT_FOUND,
-          message: td.ErrorMessage.XXX_NOT_EXIST
+          message: td.ErrorMessage.{{baseName}}_Not_Exist
         }
       ]
       {{/x-delete-method}}
@@ -376,7 +376,7 @@ module.exports = describe('{{baseName}} resource', () => {
           title: '404 - {{caseReturnType}}Id: should fail when not exist',
           params: [td.NO_EXIST_ID],
           status: httpStatus.NOT_FOUND,
-          message: td.ErrorMessage.XXX_NOT_EXIST
+          message: td.ErrorMessage.{{baseName}}_Not_Exist
         }
       ]
         {{/isListContainer}}
@@ -419,7 +419,7 @@ module.exports = describe('{{baseName}} resource', () => {
         title: '404 - {{caseReturnType}}Id: should fail when id not exist',
         params: [td.NO_EXIST_ID, body],
         status: httpStatus.NOT_FOUND,
-        message: td.ErrorMessage.XXX_NOT_EXIST
+        message: td.ErrorMessage.{{baseName}}_Not_Exist
       }])
       {{/x-put-method}}
       {{#x-patch-method}}
@@ -460,7 +460,7 @@ module.exports = describe('{{baseName}} resource', () => {
         title: '404 - {{caseReturnType}}Id: should fail when id not exist',
           params: [td.NO_EXIST_ID, body],
           status: httpStatus.NOT_FOUND,
-          message: td.ErrorMessage.XXX_NOT_EXIST
+          message: td.ErrorMessage.{{baseName}}_Not_Exist
         }])
       {{/x-patch-method}}
         {{#x-valid-methods}}

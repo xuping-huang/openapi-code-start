@@ -1,0 +1,143 @@
+/*
+* Test data for all resources
+*/
+const config = require('config')
+const httpStatus = require('http-status')
+const constants = require('./testConstants')
+const moment = require('moment')
+
+module.exports.BaseUrl = `http://localhost:${config.PORT}${config.API_VERSION}`
+module.exports.BEFORE_TEST_START = moment().subtract(1, 'minutes')
+module.exports.NO_EXIST_ID = '14972705-6850-405b-b738-1745ffa39570'
+module.exports.SCRIPT_ID = '12345'
+module.exports.HTTP_STATUS = {
+  CREATE_SUCCESS: httpStatus.CREATED,
+  DELETE_SUCCESS: httpStatus.NO_CONTENT
+}
+module.exports.STRING_INVALIDS = [ 123, undefined, [], {}, true ]
+module.exports.BOOLEAN_INVALIDS = [ 123, 'abc', [], {} ]
+
+const Token = {
+  Admin: {
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJBZG1pbmlzdHJhdG9yIl0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLmNvbSIsImhhbmRsZSI6IlRvbnlKIiwiZXhwIjo1NTUzMDE5OTI1OSwidXNlcklkIjoiNDA0MzMyODgiLCJpYXQiOjE1MzAxOTg2NTksImVtYWlsIjoiYWRtaW5AdG9wY29kZXIuY29tIiwianRpIjoiYzNhYzYwOGEtNTZiZS00NWQwLThmNmEtMzFmZTk0Yjk1NjFjIn0.pIHUtMwIV07ZgfaUk9916X49rgjKclM9kzQP419LBo0',
+    userId: '40433288',
+    handle: 'TonyJ',
+    role: 'admin'
+  },
+  Copilot: {
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJDb3BpbG90Il0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLmNvbSIsImhhbmRsZSI6ImNhbGxtZWthdG9vdGllIiwiZXhwIjo1NTUzMDE5OTI1OSwidXNlcklkIjoiNDA0OTMwMTIiLCJpYXQiOjE1MzAxOTg2NTksImVtYWlsIjoiY2FsbG1la2F0b290aWVAdG9wY29kZXIuY29tIiwianRpIjoiYzNhYzYwOGEtNTZiZS00NWQwLThmNmEtMzFmZTk0Yjk1NjFjIn0.AR1-A7zm8Rur-P36De4GUsSO1FsSb2CWby8KUZ66Dm0',
+    userId: '40493012',
+    handle: 'callmekatootie',
+    role: 'copilot'
+  },
+  User: {
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJUb3Bjb2RlciBVc2VyIl0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLmNvbSIsImhhbmRsZSI6InRlc3Rpbmd1c2VyMTIzIiwiZXhwIjo1NTUzMDE5OTI1OSwidXNlcklkIjoiODU0Nzg5OSIsImlhdCI6MTUzMDE5ODY1OSwiZW1haWwiOiJ0ZXN0aW5ndXNlcjEyM0B0b3Bjb2Rlci5jb20iLCJqdGkiOiJjM2FjNjA4YS01NmJlLTQ1ZDAtOGY2YS0zMWZlOTRiOTU2MWMifQ.EYeQthgZtEpt3p3EMYscic2_crNuzhuPGlTcUVWXc0c',
+    userId: '8547899',
+    handle: 'testinguser123',
+    role: 'user'
+  },
+  OtherRole: {
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJPdGhlciJdLCJpc3MiOiJodHRwczovL2FwaS50b3Bjb2Rlci5jb20iLCJoYW5kbGUiOiJ4dXBpbmcuaHVhbmciLCJleHAiOjU1NTMwMTk5MjU5LCJ1c2VySWQiOiI4NTQ3ODIiLCJpYXQiOjE1MzAxOTg2NTksImVtYWlsIjoieHVwaW5nLmh1YW5nQHRvcGNvZGVyLmNvbSIsImp0aSI6ImMzYWM2MDhhLTU2YmUtNDVkMC04ZjZhLTMxZmU5NGI5NTYxYyJ9.nVhsFcBOv--WbK6cNadgL6B2FgDB5AM6urvfJfEwiGA',
+    userId: '4',
+    handle: 'other'
+  },
+  None: {
+    token: ''
+  },
+  Invalid: {
+    token: 'abcd'
+  },
+  Expired: {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1Iiwicm9sZXMiOlsiQWRtaW5pc3RyYXRvciJdLCJoYW5kbGUiOiJub25lIiwiaXNzIjoiaHR0cHM6Ly9hcGkudG9wY29kZXItZGV2LmNvbSIsImlhdCI6MTU2MDIzMDY0MCwiZXhwIjoxNTYwMjMwNjQxfQ.axBsVSfFIycn_CGXV1AczCTho9S3Jj8dYy_jE8jV6XU'
+  },
+  M2M: {
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOiJhbGw6cmV2aWV3IGFsbDpyZXZpZXciLCJzdWIiOiJ0ZXN0IiwiaXNzIjoiaHR0cHM6Ly9hcGkudG9wY29kZXIuY29tIiwiZXhwIjo1NTUzMDE5OTI1OSwiaWF0IjoxNTMwMTk4NjU5LCJqdGkiOiJjM2FjNjA4YS01NmJlLTQ1ZDAtOGY2YS0zMWZlOTRiOTU2MWMifQ.uBgXNmef8I3E5cgiUjzMzcynIscD9DYbSV5b0-BX7iw',
+    sub: 'test'
+  },
+  M2M_OTHER: {
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOiJhbGw6b3RoZXIgYWxsOm90aGVyIiwic3ViIjoib3RoZXIiLCJpc3MiOiJodHRwczovL2FwaS50b3Bjb2Rlci5jb20iLCJleHAiOjU1NTMwMTk5MjU5LCJpYXQiOjE1MzAxOTg2NTksImp0aSI6ImMzYWM2MDhhLTU2YmUtNDVkMC04ZjZhLTMxZmU5NGI5NTYxYyJ9.65QVkaJc7o5ZsdbTI-pQiChg9eMsIVDm2wbmur4Bldo'
+  }
+}
+module.exports.Token = Token
+
+/**
+* Return the authorization fail request.
+* @param {String} url url endpoint
+*/
+const authFailRequests = (url, body) => [
+  {
+    title: '401 - should fail when unauthorized request',
+    params: body ? [url, body, null] : [url, null],
+    status: httpStatus.UNAUTHORIZED,
+    message: constants.ErrorMessage.Unauthorized
+  },
+  {
+    title: '401 - should fail when no token',
+    params: body ? [url, body, Token.None.token] : [url, Token.None.token],
+    status: httpStatus.UNAUTHORIZED,
+    message: constants.ErrorMessage.Unauthorized
+  },
+  {
+    title: '401 - should fail when invalid token',
+    params: body ? [url, body, Token.Invalid.token] : [url, Token.Invalid.token],
+    status: httpStatus.UNAUTHORIZED,
+    message: constants.ErrorMessage.Unauthorized
+  },
+  {
+    title: '401 - should fail when token is expired',
+    params: body ? [url, body, Token.Expired.token] : [url, Token.Expired.token],
+    status: httpStatus.UNAUTHORIZED,
+    message: constants.ErrorMessage.Expired
+  },
+  {
+    title: '401 - should fail when not allow to call this service (user token)',
+    params: body ? [url, body, Token.User.token] : [url, Token.User.token],
+    status: httpStatus.UNAUTHORIZED,
+    message: constants.ErrorMessage.Forbidden
+  },
+  {
+    title: '401 - should fail when not allow to call this service (other role token)',
+    params: body ? [url, body, Token.OtherRole.token] : [url, Token.OtherRole.token],
+    status: httpStatus.UNAUTHORIZED,
+    message: constants.ErrorMessage.Forbidden
+  },
+  {
+    title: '401 - should fail when not allow to call this service (other m2m token)',
+    params: body ? [url, body, Token.M2M_OTHER.token] : [url, Token.M2M_OTHER.token],
+    status: httpStatus.UNAUTHORIZED,
+    message: constants.ErrorMessage.Forbidden
+  }
+]
+module.exports.authFailRequests = authFailRequests
+
+{{#apiInfo}}
+  {{#apis}}
+module.exports.{{baseName}} = {
+  // TODO: add id value
+  ForGet: {
+    id: ''
+  },
+  ForDelete: {
+    id: '',
+    id1: '',
+    id2: '',
+  },
+  ForUpdate: {
+    id: ''
+  },
+  ForPatch: {
+    id: ''
+  }
+}
+  {{/apis}}
+{{/apiInfo}}
+
+
+module.exports.ErrorMessage = {
+  // TODO: modify name
+{{#apiInfo}}
+  {{#apis}}
+  {{baseName}}_Not_Exist: '{{classVarName}}s with id: 14972705-6850-405b-b738-1745ffa39570 does not exist',
+  {{/apis}}
+{{/apiInfo}}
+}

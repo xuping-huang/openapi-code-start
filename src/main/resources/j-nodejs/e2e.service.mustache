@@ -465,7 +465,7 @@ module.exports = describe('{{baseName}} resource', () => {
         title: '404 - {{caseReturnType}}Id: should fail when not exist',
         params: [formatRemoveUrl(td.NO_EXIST_ID), ADMIN_USER.token],
         status: httpStatus.NOT_FOUND,
-        message: td.ErrorMessage.XXX_NOT_EXIST
+        message: td.ErrorMessage.{{baseName}}_Not_Exist
       }
       ]
       requests.push(...td.authFailRequests(formatRemoveUrl(id)))
@@ -517,7 +517,7 @@ module.exports = describe('{{baseName}} resource', () => {
           title: '404 - {{caseReturnType}}Id: should fail when not exist',
           params: [formatGetUrl(td.NO_EXIST_ID), ADMIN_USER.token],
           status: httpStatus.NOT_FOUND,
-          message: td.ErrorMessage.XXX_NOT_EXIST
+          message: td.ErrorMessage.{{baseName}}_Not_Exist
         }
       ]
       requests.push(...td.authFailRequests(formatGetUrl(id)))
@@ -570,7 +570,7 @@ module.exports = describe('{{baseName}} resource', () => {
           title: '404 - {{caseReturnType}}Id: should fail when not exist',
           params: [formatGetUrl(td.NO_EXIST_ID), ADMIN_USER.token],
           status: httpStatus.NOT_FOUND,
-          message: td.ErrorMessage.XXX_NOT_EXIST
+          message: td.ErrorMessage.{{baseName}}_Not_Exist
         }
       ]
       requests.push(...td.authFailRequests(formatGetUrl(id)))
@@ -614,7 +614,7 @@ module.exports = describe('{{baseName}} resource', () => {
         title: '404 - {{caseReturnType}}Id: should fail when id not exist',
         params: [formatUpdateUrl(td.NO_EXIST_ID), body, ADMIN_USER.token],
         status: httpStatus.NOT_FOUND,
-        message: td.ErrorMessage.XXX_NOT_EXIST
+        message: td.ErrorMessage.{{baseName}}_Not_Exist
       }])
       requests.push(...td.authFailRequests(formatUpdateUrl(id), body))
       _.each(requests, request => {
@@ -656,7 +656,7 @@ module.exports = describe('{{baseName}} resource', () => {
         title: '404 - {{caseReturnType}}Id: should fail when id not exist',
         params: [formatPartiallyUpdateUrl(td.NO_EXIST_ID), body, ADMIN_USER.token],
         status: httpStatus.NOT_FOUND,
-        message: td.ErrorMessage.XXX_NOT_EXIST
+        message: td.ErrorMessage.{{baseName}}_Not_Exist
       }])
       requests.push(...td.authFailRequests(formatPartiallyUpdateUrl(id), body))
       _.each(requests, request => {
