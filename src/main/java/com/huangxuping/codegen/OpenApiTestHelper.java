@@ -11,6 +11,7 @@ public class OpenApiTestHelper {
         List<PostmanTest> tests = new ArrayList<>();
         switch(operation.httpMethod){
             case "get":
+            case "head":
                 if(operation.isListContainer)
                     tests = analyzeSearchOperationTest(operation);
                 else
@@ -29,8 +30,10 @@ public class OpenApiTestHelper {
                 tests = analyzeDeleteOperationTest(operation);
                 break;
         }
-        PostmanTest lastTest = tests.get(tests.size() - 1);
-        lastTest.hasMore = false;
+        if (tests.size() > 0) {
+            PostmanTest lastTest = tests.get(tests.size() - 1);
+            lastTest.hasMore = false;
+        }
 
         String[] pathStrs = StringUtils.split(operation.path, "/");
         List<PostmanPathItem> paths = new ArrayList<>();

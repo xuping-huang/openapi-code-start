@@ -107,10 +107,8 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
 
         supportingFiles.add(new SupportingFile("model.index.mustache", ("src/model").replace(".", File.separator), "index.js"));
         supportingFiles.add(new SupportingFile("route.operation.mustache", "./src", "routes.js"));
-        supportingFiles.add(new SupportingFile("model.lookup.mustache", ("src/lib").replace(".", File.separator), "lookup-load.js"));
         supportingFiles.add(new SupportingFile("db.tools.mustache", "./scripts", "tools.js"));
-        supportingFiles.add(new SupportingFile("db.create-db.mustache", "./scripts", "create-db.sql"));
-        supportingFiles.add(new SupportingFile("test.data.mustache", "./test/lib", "test-data.js"));
+        supportingFiles.add(new SupportingFile("assert.mustache", "./test/lib", "assert.js"));
         supportingFiles.add(new SupportingFile("e2e.index.mustache", "./test/e2e", "test.js"));
         supportingFiles.add(new SupportingFile("unit.index.mustache", "./test/unit", "test.js"));
 
@@ -324,6 +322,9 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
             generatorUtil.handleOperation(operation);
             generatorUtil.handleOperationWithModels(operation, allModels);
             analyzeOperationTest(operation);
+            operation.vendorExtensions.put("caseReturnType", StringUtils.uncapitalize(operation.baseName));
+            String[] strs = StringUtils.splitByCharacterTypeCamelCase(operation.baseName);
+            operation.vendorExtensions.put("spaceReturnType", StringUtils.lowerCase(StringUtils.join(strs, ' ')));
         }
         return objs;
     }
@@ -507,6 +508,12 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                     break;
             }
         }
+//        op.vendorExtensions.put("caseReturnType", StringUtils.uncapitalize(op.baseName));
+//        String[] strs = StringUtils.splitByCharacterTypeCamelCase(op.baseName);
+//        op.vendorExtensions.put("spaceReturnType", StringUtils.lowerCase(StringUtils.join(strs, ' ')));
+//
+//        this.additionalProperties.put("spaceBaseName", StringUtils.uncapitalize(openAPI.));
+//        this.additionalProperties.put("caseBaseName", true);
 
         if (openAPI.getInfo() != null) {
             Info info = openAPI.getInfo();
@@ -580,6 +587,11 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
 
             List<Map<String, Object>> opsByPathList = sortOperationsByPath(ops);
             operations.put("operationsByPath", opsByPathList);
+            for (CodegenOperation op : ops) {
+                op.vendorExtensions.put("caseReturnType", StringUtils.uncapitalize(op.baseName));
+                String[] strs = StringUtils.splitByCharacterTypeCamelCase(op.baseName);
+                op.vendorExtensions.put("spaceReturnType", StringUtils.lowerCase(StringUtils.join(strs, ' ')));
+            }
         }
         return super.postProcessSupportingFileData(objs);
     }

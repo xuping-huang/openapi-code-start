@@ -1,0 +1,167 @@
+/**
+* Assert functions for test.
+*/
+const _ = require('lodash')
+const should = require('chai').should()
+const moment = require('moment')
+const td = require('./testData')
+
+{{#apiInfo}}
+  {{#apis}}
+    {{#operations}}
+      {{#operation}}
+        {{#vendorExtensions}}
+          {{#x-get-method}}
+            {{#isListContainer}}
+/**
+ * Assert {{spaceReturnType}} searched result.
+ * @param {Array} record the search result
+ * @param {Array} items compare target array
+ */
+const {{caseReturnType}}SearchBody = async (record, items) => {
+  should.equal(record.length, items.length)
+  _.each(items, item => {
+  const found = record.find(obj => obj.id === item.id)
+    should.exist(found)
+{{#queryParams}}
+    should.equal(found.{{baseName}}, obj.{{baseName}});
+{{/queryParams}}
+    should.equal(found.createdBy, td.SCRIPT_ID)
+    should.equal(found.updatedBy, td.SCRIPT_ID)
+    should.equal(true, moment(found.createdAt).isAfter(td.BEFORE_TEST_START))
+    should.equal(true, moment(found.createdAt).isSame(found.updatedAt))
+  })
+}
+            {{/isListContainer}}
+            {{^isListContainer}}
+/**
+ * Assert {{spaceReturnType}} gotten result.
+ * @param {Object} record the gotten object
+ * @param {Object} obj object for comparison
+ * @param {String} currentUserId the current user id
+ */
+const {{caseReturnType}}GetBody = async (record, obj, currentUserId) => {
+  should.equal(record.id, obj.id)
+  should.equal(record.name, obj.name)
+  if (currentUserId) {
+    should.equal(record.createdBy, currentUserId)
+    should.equal(record.updatedBy, currentUserId)
+  }
+  should.equal(true, moment(record.createdAt).isAfter(td.BEFORE_TEST_START))
+  should.equal(true, moment(record.createdAt).isSame(record.updatedAt))
+}
+            {{/isListContainer}}
+          {{/x-get-method}}
+          {{#x-post-method}}
+/**
+ * Assert {{spaceReturnType}} created result.
+ * @param {Object} record the created object
+ * @param {Object} obj object for comparison
+ * @param {String} currentUserId the current user id
+ */
+const {{caseReturnType}}CreateBody = async (record, obj, currentUserId) => {
+{{#bodyParams}}
+  {{#isModel}}
+    {{#vendorExtensions}}
+      {{#x-refModel}}
+        {{#vars}}
+  should.equal(record.{{baseName}}, obj.{{baseName}});
+        {{/vars}}
+      {{/x-refModel}}
+    {{/vendorExtensions}}
+  {{/isModel}}
+  {{^isModel}}
+  should.equal(record.{{baseName}}, obj.{{baseName}});
+  {{/isModel}}
+{{/bodyParams}}
+  if (currentUserId) {
+    should.equal(record.id, obj.id)
+    should.equal(record.createdBy, currentUserId)
+    should.equal(record.updatedBy, currentUserId)
+    should.equal(true, moment(record.createdAt).isAfter(td.BEFORE_TEST_START))
+    should.equal(true, moment(record.createdAt).isSame(record.updatedAt))
+    should.equal(true, moment(record.createdAt).isSame(obj.createdAt))
+    should.equal(true, moment(record.updatedAt).isSame(obj.updatedAt))
+  }
+}
+          {{/x-post-method}}
+          {{#x-put-method}}
+/**
+ * Assert {{spaceReturnType}} updated result.
+ * @param {Object} record the updated object
+ * @param {Object} obj object for comparison
+ * @param {String} currentUserId the current user id
+ */
+const scoreSystemUpdateBody = async (record, obj, currentUserId) => {
+{{#bodyParams}}
+  {{#isModel}}
+    {{#vendorExtensions}}
+      {{#x-refModel}}
+        {{#vars}}
+  should.equal(record.{{baseName}}, obj.{{baseName}});
+        {{/vars}}
+      {{/x-refModel}}
+    {{/vendorExtensions}}
+  {{/isModel}}
+  {{^isModel}}
+  should.equal(record.{{baseName}}, obj.{{baseName}});
+  {{/isModel}}
+{{/bodyParams}}
+  if (currentUserId) {
+    should.equal(record.id, obj.id)
+    should.equal(record.updatedBy, currentUserId)
+    should.equal(record.createdBy, obj.createdBy)
+    should.equal(record.updatedBy, obj.updatedBy)
+    should.equal(true, moment(record.createdAt).isAfter(td.BEFORE_TEST_START))
+    should.equal(true, moment(record.updatedAt).isAfter(moment(record.createdAt)))
+    should.equal(true, moment(record.createdAt).isSame(obj.createdAt))
+    should.equal(true, moment(record.updatedAt).isSame(obj.updatedAt))
+  }
+}
+          {{/x-put-method}}
+          {{#x-patch-method}}
+/**
+ * Assert {{spaceReturnType}} partially updated result.
+ * @param {Object} record the partially updated object
+ * @param {Object} obj object for comparison
+ * @param {String} currentUserId the current user id
+ */
+const {{caseReturnType}}PartialUpdateBody = async (record, obj, currentUserId) => {
+  await {{caseReturnType}}UpdateBody(record, obj, currentUserId)
+}
+          {{/x-patch-method}}
+        {{/vendorExtensions}}
+      {{/operation}}
+    {{/operations}}
+  {{/apis}}
+{{/apiInfo}}
+
+module.exports = {
+{{#apiInfo}}
+  {{#apis}}
+    {{#operations}}
+      {{#operation}}
+        {{#vendorExtensions}}
+          {{#x-get-method}}
+            {{#isListContainer}}
+  {{caseReturnType}}SearchBody,
+            {{/isListContainer}}
+            {{^isListContainer}}
+  {{caseReturnType}}GetBody,
+            {{/isListContainer}}
+          {{/x-get-method}}
+            {{#x-post-method}}
+  {{caseReturnType}}CreateBody,
+            {{/x-post-method}}
+            {{#x-put-method}}
+  {{caseReturnType}}UpdateBody,
+            {{/x-put-method}}
+            {{#x-patch-method}}
+  {{caseReturnType}}PartialUpdateBody,
+            {{/x-patch-method}}
+        {{/vendorExtensions}}
+      {{/operation}}
+    {{/operations}}
+  {{/apis}}
+{{/apiInfo}}
+}

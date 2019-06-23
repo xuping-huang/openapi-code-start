@@ -222,6 +222,8 @@ public class PostmanTest {
         ArrayList rets = new ArrayList<PostmanTest>();
         rets.add(new PostmanTest("409 - " + paramName + ": should fail when uniqueness property repeated"));
         rets.add(new PostmanTest("400 - " + paramName + ": should fail when reference id invalid"));
+        rets.add(new PostmanTest("400 - " + paramName + ": should fail when dup value in array"));
+
         return rets;
     }
     static public ArrayList<PostmanTest> getUpdateTests(String paramName){
@@ -230,6 +232,7 @@ public class PostmanTest {
         rets.add(new PostmanTest("400 - " + paramName + ": should fail when invalid update id"));
         rets.add(new PostmanTest("400 - " + paramName + ": should fail when update freeze status entity"));
         rets.add(new PostmanTest("400 - " + paramName + ": should fail when reference id invalid"));
+        rets.add(new PostmanTest("400 - " + paramName + ": should fail when dup value in array"));
 
         return rets;
     }

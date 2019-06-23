@@ -1,13 +1,14 @@
 /**
-* {{baseName}} Service
-*/
-
-const Joi = require('joi')
-const merge = require('merge-deep')
-const uuidv4 = require('uuid/v4')
-const error = require('../lib/app-error')
-const Model = require('../model/index')
+ * {{baseName}} Service
+ */
+const _ = require('lodash')
+const Joi = require('@hapi/joi')
+const uuid = require('uuid/v4')
+const helper = require('../lib/helper')
+const { Table } = require('../constants')
+const logger = require('../lib/logger')
 {{#orm_isSequelize}}
+const models = require('../model/index')
 const sequelize = require('../lib/db').sequelize
 {{/orm_isSequelize}}
 
@@ -33,7 +34,13 @@ const sequelize = require('../lib/db').sequelize
 module.exports = {
 {{#operations}}
 {{#operation}}
+{{#vendorExtensions}}
+{{^x-head-method}}
   {{nickname}}{{#hasMore}},{{/hasMore}}
+{{/x-head-method}}
+{{/vendorExtensions}}
 {{/operation}}
 {{/operations}}
 }
+
+logger.buildService(module.exports)

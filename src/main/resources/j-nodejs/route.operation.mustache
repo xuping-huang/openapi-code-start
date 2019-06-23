@@ -61,21 +61,14 @@ router.get('/swagger', (req, res) => {
 
 {{/swgdoc}}
 {{/openAPI}}
-{{#apiInfo}}
-{{#apis}}
-{{#operations}}
-  {{#m2mToken}}
-const ALL_{{classVarName}} = 'all:{{classVarName}}'
-  {{/m2mToken}}
-{{/operations}}
-{{/apis}}
-{{/apiInfo}}
 
 const routes = {
   {{#apiInfo}}
   {{#apis}}
   {{#operations}}
   {{#operation}}
+    {{#vendorExtensions}}
+      {{^x-head-method}}
   '{{path}}': {
     {{httpMethod}}: {
       operation: '{{operationId}}',
@@ -84,25 +77,17 @@ const routes = {
       auth: 'jwt',
       {{/userToken}}
       {{#m2mToken}}
-      scopes: ['{{> sub.httpMethod2ScopePrefix}}:{{classVarName}}', ALL_{{classVarName}}],
+      scopes: ['{{> sub.httpMethod2ScopePrefix}}:{{classVarName}}', 'all:{{classVarName}}'],
       {{/m2mToken}}
-      roles: [Role.Admin]
+      roles: [Role.Admin, Role.Copilot]
     }
   },
+      {{/x-head-method}}
+  {{/vendorExtensions}}
 {{/operation}}
 {{/operations}}
 {{/apis}}
 {{/apiInfo}}
 }
-
-// Set the same value properties between different routes
-_.each(routes, (verbs, path) => {
-  _.each(verbs, (def, verb) => { // eslint-disable-line
-    if (path.startsWith('/')) {
-      // def.auth = 'jwt'
-      // def.controller = 'api.'
-    }
-  })
-})
 
 module.exports = routes

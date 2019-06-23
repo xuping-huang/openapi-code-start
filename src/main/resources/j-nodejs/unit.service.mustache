@@ -1,288 +1,481 @@
 /**
 * Unit test of the {{baseName}}.
 */
-const _ = require('lodash');
-const merge = require('merge-deep');
-const should = require('should');
-const moment = require('moment');
-const models = require('../../src/model/index');
-const testData = require('../lib/testData');
-const { failItService } = require('../lib/testHelper');
+const _ = require('lodash')
+const should = require('chai').should()
+const moment = require('moment')
+const httpStatus = require('http-status')
+const jom = require('../lib/jom')
+const td = require('../lib/testData')
+const th = require('../lib/testHelper')
+const assert = require('../lib/assert')
 const {{classname}}Service = require('../../src/service/service.{{classname}}')
 
-const TheModel = models.{{baseName}};
-const USER1 = testData.TestUser.RoleUser1;
-const USER1_ID = testData.TestUser.RoleUser1.id;
+const CURRENT_USER = td.Token.Copilot
+const M2M_USER = { sub: td.M2M_CONFIG.SUB }
+let RECORDS = [];
 
 module.exports = describe('{{baseName}} resource', () => {
-  let RECORDS = [];
+  before(async () => {
+    RECORDS = await th.load{{baseName}}Data()
+  });
 {{#operations}}
 {{#operation}}
-  xdescribe('{{operationIdSnakeCase}} endpoint', () => {
+  {{#vendorExtensions}}
+    {{^x-head-method}}
+  xdescribe('{{operationId}} endpoint', () => {
+  {{#x-post-method}}
+    // TODO: change body properties content
     const Payload = {
-    {{#pathParams}}
-      {{paramName}}: 1,
-    {{/pathParams}}
       body: {
     {{#bodyParams}}
       {{#isModel}}
         {{#vendorExtensions}}
           {{#x-refModel}}
             {{#vars}}
-        {{baseName}}{{#hasMore}},{{/hasMore}}
+        {{baseName}}: '',
             {{/vars}}
           {{/x-refModel}}
         {{/vendorExtensions}}
       {{/isModel}}
       {{^isModel}}
-        {{baseName}}{{#hasMore}},{{/hasMore}}
+        {{baseName}}: '',
       {{/isModel}}
     {{/bodyParams}}
       }
     };
+  {{/x-post-method}}
+  {{#x-put-method}}
+    const Payload = {
+      id: td.{{baseName}}.ForUpdate.id,
+      // TODO: change body properties value
+      body: {
+      {{#bodyParams}}
+        {{#isModel}}
+          {{#vendorExtensions}}
+            {{#x-refModel}}
+              {{#vars}}
+        {{baseName}}: '',
+              {{/vars}}
+            {{/x-refModel}}
+          {{/vendorExtensions}}
+        {{/isModel}}
+        {{^isModel}}
+      {{baseName}}: '',
+        {{/isModel}}
+      {{/bodyParams}}
+      }
+    };
+  {{/x-put-method}}
+  {{#x-patch-method}}
+    const Payload = {
+    id: td.{{baseName}}.ForPatch.id,
+    body: {
+    {{#bodyParams}}
+      {{#isModel}}
+        {{#vendorExtensions}}
+          {{#x-refModel}}
+            {{#vars}}
+      {{baseName}}: '',
+            {{/vars}}
+          {{/x-refModel}}
+        {{/vendorExtensions}}
+      {{/isModel}}
+      {{^isModel}}
+      {{baseName}}: '',
+      {{/isModel}}
+    {{/bodyParams}}
+    }
+    };
+  {{/x-patch-method}}
     describe('success request', () => {
-      before(async () => {
-        RECORDS = await TheModel.findAll();
-      });
-  {{#vendorExtensions}}
     {{#x-get-method}}
-      {{#responses.isListContainer}}
-      const assert{{baseName}}SearchBody = async (record, coll, isPagination = false, page = testData.DEFAULT_PAGE, pageSize = testData.DEFAULT_PAGE_SIZE) => {
-        if (!isPagination) {
-          should.equal(record.total, coll.length);
-        } else {
-          should.equal(record.total, RECORDS.length);
+      {{#isListContainer}}
+      // TODO: add more test value
+      const includesQuery = {
+      {{#queryParams}}
+        {{#isString}}
+        {{baseName}}: [],
+        {{/isString}}
+      {{/queryParams}}
+      }
+      _.each(includesQuery, (values, key) => {
+        _.each(values, value => {
+          xit(`200 - ${key}: should success when use '${String(value)}'`, async () => {
+            const record = await {{classname}}Service.{{operationId}}({ [key]: value })
+            // TODO: if not case insensitive search, you need remove toLowerCase()
+            const items = RECORDS.filter(item => item[key].toLowerCase().includes(String(value).toLowerCase()))
+            await assert.{{caseReturnType}}SearchBody(record, items)
+          })
+        })
+      })
+      // TODO: add more test value
+      const equalQuery = {
+      {{#queryParams}}
+        {{^isString}}
+          {{baseName}}: [],
+        {{/isString}}
+      {{/queryParams}}
+      }
+      _.each(equalQuery, (values, key) => {
+        _.each(values, value => {
+          xit(`200 - ${key}: should success when use '${String(value)}'`, async () => {
+            const record = await {{classname}}Service.{{operationId}}({ [key]: value })
+            const filters = RECORDS.filter(item => item[key] === value)
+            await assert.{{caseReturnType}}SearchBody(record, filters)
+          })
+        })
+      })
+      xit('200 - should success when no condition', async () => {
+        const record = await {{classname}}Service.{{operationId}}({})
+        await assert.{{caseReturnType}}SearchBody(record, RECORDS)
+      })
+      xit('200 - should success when all condition', async () => {
+        // TODO: add more test value
+        const body = {
+      {{#queryParams}}
+          {{baseName}}: '',
+      {{/queryParams}}
         }
-        should.equal(record.page, page);
-        should.equal(record.pageSize, pageSize);
-        record.items.forEach((item) => {
-          const found = coll.find(col => String(col.id) === String(item.id));
-      {{#bodyParams}}
-        {{#isModel}}
-          {{#vendorExtensions}}
-            {{#x-refModel}}
-              {{#vars}}
-          should.equal(record.{{baseName}}, obj.{{baseName}});
-              {{/vars}}
-            {{/x-refModel}}
-          {{/vendorExtensions}}
-        {{/isModel}}
-        {{^isModel}}
-          should.equal(record.{{baseName}}, obj.{{baseName}});
-        {{/isModel}}
-      {{/bodyParams}}
-          should.equal(item.{{createdBy}}, found.{{createdBy}});
-          should.equal(item.{{updatedBy}}, found.{{updatedBy}});
-          should.equal(true, moment(item.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
-          should.equal(item.{{createdAt}}, item.{{updatedAt}});
-        });
-      }
-      {{/responses.isListContainer}}
-      {{^responses.isListContainer}}
-      const assert{{baseName}}GetBody = async (record, obj) => {
-        should.equal(record.id, obj.id);
-      {{#bodyParams}}
-        {{#isModel}}
-          {{#vendorExtensions}}
-            {{#x-refModel}}
-              {{#vars}}
-        should.equal(record.{{baseName}}, obj.{{baseName}});
-              {{/vars}}
-            {{/x-refModel}}
-          {{/vendorExtensions}}
-        {{/isModel}}
-        {{^isModel}}
-        should.equal(record.{{baseName}}, obj.{{baseName}});
-        {{/isModel}}
-      {{/bodyParams}}
-        should.equal(record.{{createdBy}}, obj.{{createdBy}});
-        should.equal(record.{{updatedBy}}, obj.{{updatedBy}});
-        should.equal(true, moment(record.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
-        should.equal(record.{{createdAt}}, moment(obj.{{createdAt}}).toISOString());
-        should.equal(record.{{updatedAt}}, moment(obj.{{updatedAt}}).toISOString());
-      }
-      {{/responses.isListContainer}}
+        const record = await {{classname}}Service.{{operationId}}(body)
+        const filters = RECORDS.filter(item => {
+          // TODO: change filter rule
+          return true
+        })
+        await assert.{{caseReturnType}}SearchBody(record, filters)
+      })
+      {{/isListContainer}}
+      {{^isListContainer}}
+      xit('200 - should success when find by id', async () => {
+        const id = td.{{baseName}}.ForGet.id
+        const record = await {{classname}}Service.{{operationId}}(id)
+        const obj = RECORDS.find(item => item.id === id)
+        await assert.{{caseReturnType}}GetBody(record, obj)
+      })
+      {{/isListContainer}}
     {{/x-get-method}}
     {{#x-post-method}}
-      const assert{{baseName}}CreateBody = async (record, obj, currentUserId) => {
-      {{#bodyParams}}
-        {{#isModel}}
-          {{#vendorExtensions}}
-            {{#x-refModel}}
-              {{#vars}}
-        should.equal(record.{{baseName}}, obj.{{baseName}});
-              {{/vars}}
-            {{/x-refModel}}
-          {{/vendorExtensions}}
-        {{/isModel}}
-        {{^isModel}}
-        should.equal(record.{{baseName}}, obj.{{baseName}});
-        {{/isModel}}
-      {{/bodyParams}}
-        if (currentUserId) {
-          should.equal(record.id, obj.id);
-          should.equal(record.{{createdBy}}, currentUserId);
-          should.equal(record.{{updatedBy}}, currentUserId);
-          should.equal(true, moment(record.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
-          should.equal(record.{{createdAt}}, record.{{updatedAt}});
-          should.equal(record.{{createdAt}}, moment(obj.{{createdAt}}).toISOString());
-          should.equal(record.{{updatedAt}}, moment(obj.{{updatedAt}}).toISOString());
+      const params = [
+        {
+          title: 'body',
+          body: Payload.body,
+          oldCount: 0,
+          user: CURRENT_USER,
+          userId: CURRENT_USER.handle
+        },
+        // TODO: remove if do not need m2m
+        {
+          title: 'm2m',
+          body: _.assign({}, Payload.body, { name: 'M2M' }),
+          oldCount: 0,
+          user: M2M_USER,
+          userId: M2M_USER.sub
         }
+      ]
+      const assertCreate = async (param) => {
+        const oldObj = await {{classname}}Service.search{{baseName}}(param.body)
+        should.equal(param.oldCount, oldObj.length)
+        const before = moment()
+        const record = await {{classname}}Service.{{operationId}}(param.body, param.user)
+        const newObj = await {{classname}}Service.get{{baseName}}(record.id)
+        should.equal(true, moment(record.createdAt).isSameOrAfter(before))
+        await assert.{{caseReturnType}}CreateBody(record, newObj, param.userId)
+        // TODO: modify assign body
+        const assignedBody = _.assign({}, param.body, param.assignBody ? param.assignBody : {})
+        await assert.{{caseReturnType}}CreateBody(record, assignedBody)
       }
+      _.each(params, param => {
+        xit(`201 - should success when create with ${param.title}`, async () => {
+          await assertCreate(param)
+        })
+      })
     {{/x-post-method}}
     {{#x-delete-method}}
+      xit('204 - should success when delete by id', async () => {
+        const id = td.{{baseName}}.ForDelete.id
+        const oldObj = await {{classname}}Service.get{{baseName}}(id)
+        should.exist(oldObj)
+        await {{classname}}Service.{{operationId}}(id)
+        try {
+          await {{classname}}Service.get{{baseName}}(id)
+        } catch (err) {
+          should.equal(err.message, `{{caseReturnType}}s with id: ${id} does not exist`)
+          should.equal(err.httpStatus, httpStatus.NOT_FOUND)
+        }
+      })
     {{/x-delete-method}}
     {{#x-put-method}}
-      const assert{{baseName}}UpdateBody = async (record, obj, currentUserId) => {
+      const { id, body } = Payload
+        xit('200 - should success when update by id', async () => {
+          const oldObj = await {{classname}}Service.get{{baseName}}(id)
+          const record = await {{classname}}Service.{{operationId}}(id, body, CURRENT_USER)
+          const newObj = await {{classname}}Service.get{{baseName}}(id)
       {{#bodyParams}}
         {{#isModel}}
           {{#vendorExtensions}}
             {{#x-refModel}}
               {{#vars}}
-        should.equal(record.{{baseName}}, obj.{{baseName}});
+          should.not.equal(oldObj.{{baseName}}, newObj.{{baseName}})
               {{/vars}}
             {{/x-refModel}}
           {{/vendorExtensions}}
         {{/isModel}}
         {{^isModel}}
-        should.equal(record.{{baseName}}, obj.{{baseName}});
+          should.not.equal(oldObj.{{baseName}}, newObj.{{baseName}})
         {{/isModel}}
       {{/bodyParams}}
-        if (currentUserId) {
-          should.equal(record.id, obj.id);
-          should.equal(record.{{updatedBy}}, currentUserId);
-          should.equal(record.{{createdBy}}, obj.{{createdBy}});
-          should.equal(record.{{updatedBy}}, obj.{{updatedBy}});
-          should.equal(true, moment(record.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
-          should.equal(true, moment(record.{{updatedAt}}).isAfter(moment(record.{{createdAt}})));
-          should.equal(record.{{createdAt}}, moment(obj.{{createdAt}}).toISOString());
-          should.equal(record.{{updatedAt}}, moment(obj.{{updatedAt}}).toISOString());
-        }
-      }
+          await assert.{{caseReturnType}}UpdateBody(record, newObj, CURRENT_USER.handle)
+          await assert.{{caseReturnType}}UpdateBody(record, body)
+        })
+        // TODO: remove if do not need m2m
+        xit('200 - should success when update no change (m2m)', async () => {
+          const oldObj = await {{classname}}Service.get{{baseName}}(id)
+          const record = await {{classname}}Service.{{operationId}}(id, body, M2M_USER)
+          const newObj = await {{classname}}Service.get{{baseName}}(id)
+          await assert.{{caseReturnType}}UpdateBody(record, oldObj)
+          await assert.{{caseReturnType}}UpdateBody(record, newObj, M2M_USER.sub)
+          await assert.{{caseReturnType}}UpdateBody(record, body)
+      })
     {{/x-put-method}}
     {{#x-patch-method}}
-      const assert{{baseName}}PartialUpdateBody = async (record, obj, currentUserId) => {
-      should.equal(record.name, obj.name);
+      const { id, body } = Payload
+      const params = [
       {{#bodyParams}}
         {{#isModel}}
           {{#vendorExtensions}}
             {{#x-refModel}}
               {{#vars}}
-        should.equal(record.{{baseName}}, obj.{{baseName}});
+        {
+          body: { {{baseName}}: body.{{baseName}} + '-partially update' },
+          user: CURRENT_USER,
+          userId: CURRENT_USER.handle
+        },
               {{/vars}}
             {{/x-refModel}}
           {{/vendorExtensions}}
         {{/isModel}}
         {{^isModel}}
-        should.equal(record.{{baseName}}, obj.{{baseName}});
+        {
+          body: { {{baseName}}: body.{{baseName}} + '-partially update' },
+          user: CURRENT_USER,
+          userId: CURRENT_USER.handle
+        },
         {{/isModel}}
       {{/bodyParams}}
-        if (currentUserId) {
-          should.equal(record.id, obj.id);
-          should.equal(record.{{updatedBy}}, currentUserId);
-          should.equal(record.{{createdBy}}, obj.{{createdBy}});
-          should.equal(record.{{updatedBy}}, obj.{{updatedBy}});
-          should.equal(true, moment(record.{{createdAt}}).isAfter(testData.BEFORE_TEST_START));
-          should.equal(true, moment(record.{{updatedAt}}).isAfter(moment(record.{{createdAt}})));
-          should.equal(record.{{createdAt}}, moment(obj.{{createdAt}}).toISOString());
-          should.equal(record.{{updatedAt}}, moment(obj.{{updatedAt}}).toISOString());
+        // TODO: remove if do not need m2m
+        {
+          body,
+          user: M2M_USER,
+          userId: M2M_USER.sub
         }
-      }
+      ]
+      _.each(params, param => {
+        xit(`200 - should success when update with '${JSON.stringify(param.body)}'`, async () => {
+          const oldObj = await {{classname}}Service.get{{baseName}}(id)
+          const record = await {{classname}}Service.{{operationId}}(id, param.body, param.user)
+          const newObj = await {{classname}}Service.get{{baseName}}(id)
+          _.each(param.body, (value, key) => {
+            should.not.equal(oldObj[key], newObj[key])
+            should.equal(newObj[key], value)
+          })
+          await assert.{{caseReturnType}}PartialUpdateBody(record, newObj, param.userId)
+          await assert.{{caseReturnType}}PartialUpdateBody(record, _.assign({}, oldObj, param.body))
+        })
+      })
     {{/x-patch-method}}
-  {{/vendorExtensions}}
 
-  {{#vendorExtensions}}
     {{#x-valid-methods}}
       {{^isFailValidate}}
-      xit('{{title}}', async () => {
-        const params = merge(Payload, { })
-        {{#isGetById}}
-        const record = await {{classname}}Service.{{operationId}}(params)
-        const obj = await TheModel.findOne({ where: { id: 'get id' }, paranoid: false });
-        await assert{{baseName}}GetBody(record, obj);
-        {{/isGetById}}
-        {{#isSearch}}
-        const record = await {{classname}}Service.{{operationId}}(params)
-        const filters = RECORDS.filter(item => String(item.id) === 'filter condition');
-        await assert{{baseName}}SearchBody(record, filters)
-        {{/isSearch}}
-        {{#isCreate}}
-        const oldObj = await TheModel.findOne({ where: { id: 'new id' }, paranoid: false });
-        should.equal(true, _.isNull(oldObj));
-        const before = moment()
-        const record = await {{classname}}Service.{{operationId}}(params, USER1)
-        const obj = await TheModel.findOne({ where: { id: 'new id' }, paranoid: false });
-        should.equal(true, moment(record.{{createdAt}}).isAfter(before));
-        await assert{{baseName}}CreateBody(record, obj, USER1_ID);
-        await assert{{baseName}}CreateBody(record, params);
-        {{/isCreate}}
-        {{#isUpdateById}}
-        const oldObj = await TheModel.findOne({ where: { id: 'updated id' }, paranoid: false });
-        const record = await {{classname}}Service.{{operationId}}(params, USER1)
-        const obj = await TheModel.findOne({ where: { id: 'updated id' }, paranoid: false });
-        await assert{{baseName}}UpdateBody(oldObj, obj)
-        await assert{{baseName}}UpdateBody(record, obj, USER1_ID);
-        await assert{{baseName}}UpdateBody(record, params)
-        {{/isUpdateById}}
-        {{#isPartialUpdateById}}
-        const oldObj = await TheModel.findOne({ where: { id: 'updated id' }, paranoid: false });
-        const record = await {{classname}}Service.{{operationId}}(params, USER1)
-        const obj = await TheModel.findOne({ where: { id: 'updated id' }, paranoid: false });
-        await assert{{baseName}}PartialUpdateBody(oldObj, obj)
-        await assert{{baseName}}PartialUpdateBody(record, obj, USER1_ID);
-        await assert{{baseName}}PartialUpdateBody(record, params)
-        {{/isPartialUpdateById}}
-        {{#isDeleteById}}
-        const oldObj = await TheModel.findOne({ where: { id: 'deleted id' }, paranoid: false });
-        should.exist(oldObj);
-        await {{classname}}Service.{{operationId}}(params, USER1)
-        const obj = await TheModel.findOne({ where: { id: 'deleted id' }, paranoid: false });
-        should.equal(true, _.isNull(obj));
-        {{/isDeleteById}}
-      });
-        {{/isFailValidate}}
-      {{/x-valid-methods}}
-    {{/vendorExtensions}}
+      // title: '{{title}}'
+      {{/isFailValidate}}
+    {{/x-valid-methods}}
     });
 
     xdescribe('fail request', () => {
-      const params = merge(Payload, { })
-    {{#vendorExtensions}}
       {{#x-post-method}}
+      const {
+        body
+      } = Payload
+      const requests = []
+      requests.push(...th.genStringTests(
+        // TODO: modify properties
+        ['name'],
+        td.STRING_INVALIDS,
+        {
+          body,
+          isUnitTest: true
+        }
+      ))
+      requests.push(...th.genBooleanTests(
+        // TODO: modify properties
+        [],
+        td.BOOLEAN_INVALIDS,
+        {
+          body,
+          isUnitTest: true
+        }
+      ))
       {{/x-post-method}}
       {{#x-delete-method}}
+      const requests = [
+        {
+          title: '400 - {{caseReturnType}}Id: should fail when not string',
+          params: [123],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.mustString('{{caseReturnType}}Id').message
+        },
+        {
+          title: '400 - {{caseReturnType}}Id: should fail when not guid',
+          params: ['abc'],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.mustGuid('{{caseReturnType}}Id').message
+        },
+        {
+          title: '404 - {{caseReturnType}}Id: should fail when not exist',
+          params: [td.NO_EXIST_ID],
+          status: httpStatus.NOT_FOUND,
+          message: td.ErrorMessage.XXX_NOT_EXIST
+        }
+      ]
       {{/x-delete-method}}
       {{#x-get-method}}
-        {{#responses.isListContainer}}
-        {{/responses.isListContainer}}
-        {{^responses.isListContainer}}
-        {{/responses.isListContainer}}
+        {{#isListContainer}}
+      const requests = []
+      requests.push(...th.genStringTests(
+        [{{#queryParams}}{{#isString}}'{{baseName}}', {{/isString}}{{/queryParams}}],
+        td.STRING_INVALIDS.filter(item => !_.isUndefined(item)),
+        {
+          isSearch: true,
+          isUnitTest: true
+        }
+      ))
+      requests.push(...th.genBooleanTests(
+        [{{#queryParams}}{{#isBoolean}}'{{baseName}}', {{/isBoolean}}{{/queryParams}}],
+        td.BOOLEAN_INVALIDS,
+        {
+          isSearch: true,
+          isUnitTest: true
+        }
+      ))
+        {{/isListContainer}}
+        {{^isListContainer}}
+      const requests = [
+        {
+          title: '400 - {{caseReturnType}}Id: should fail when not string',
+          params: [123],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.mustString('{{caseReturnType}}Id').message
+        },
+        {
+          title: '400 - {{caseReturnType}}Id: should fail when not guid',
+          params: ['abc'],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.mustGuid('{{caseReturnType}}Id').message
+        },
+        {
+          title: '404 - {{caseReturnType}}Id: should fail when not exist',
+          params: [td.NO_EXIST_ID],
+          status: httpStatus.NOT_FOUND,
+          message: td.ErrorMessage.XXX_NOT_EXIST
+        }
+      ]
+        {{/isListContainer}}
       {{/x-get-method}}
       {{#x-put-method}}
+      const { id, body } = Payload
+      const requests = []
+      requests.push(...th.genStringTests(
+        // TODO: modify properties
+        ['name'],
+        td.STRING_INVALIDS,
+        {
+          id,
+          body,
+          isUnitTest: true
+        }
+      ))
+      requests.push(...th.genBooleanTests(
+        // TODO: modify properties
+        [],
+        td.BOOLEAN_INVALIDS,
+        {
+          id,
+          body,
+          isUnitTest: true
+        }
+      ))
+      requests.push(...[{
+        title: '400 - {{caseReturnType}}Id: should fail when not string',
+        params: [123, body],
+        status: httpStatus.BAD_REQUEST,
+        message: jom.mustString('{{caseReturnType}}Id').message
+      }, {
+        title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
+        params: ['abc', body],
+        status: httpStatus.BAD_REQUEST,
+        message: jom.mustGuid('{{caseReturnType}}Id').message
+      },
+      {
+        title: '404 - {{caseReturnType}}Id: should fail when id not exist',
+        params: [td.NO_EXIST_ID, body],
+        status: httpStatus.NOT_FOUND,
+        message: td.ErrorMessage.XXX_NOT_EXIST
+      }])
       {{/x-put-method}}
       {{#x-patch-method}}
+        const { id, body } = Payload
+        const requests = []
+        requests.push(...th.genStringTests(
+          // TODO: modify properties
+          ['name'],
+          td.STRING_INVALIDS,
+          {
+            id,
+            body: {},
+            isUnitTest: true
+          }
+          ))
+          requests.push(...th.genBooleanTests(
+          // TODO: modify properties
+          [],
+          td.BOOLEAN_INVALIDS,
+          {
+            id,
+            body: {},
+            isUnitTest: true
+          }
+        ))
+        requests.push(...[{
+          title: '400 - {{caseReturnType}}Id: should fail when not string',
+          params: [123, body],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.mustString('{{caseReturnType}}Id').message
+        }, {
+        title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
+          params: ['abc', body],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.mustGuid('{{caseReturnType}}Id').message
+        },
+        {
+        title: '404 - {{caseReturnType}}Id: should fail when id not exist',
+          params: [td.NO_EXIST_ID, body],
+          status: httpStatus.NOT_FOUND,
+          message: td.ErrorMessage.XXX_NOT_EXIST
+        }])
       {{/x-patch-method}}
-    {{/vendorExtensions}}
-      const requests = [
-      {{#vendorExtensions}}
         {{#x-valid-methods}}
           {{#isFailValidate}}
-        {
-          title: '{{title}}',
-          params,
-          status: {{statusCode}},
-          message: "Jom.mustPositive('id').message"
-        },
+      // title: '{{title}}'
           {{/isFailValidate}}
         {{/x-valid-methods}}
-      {{/vendorExtensions}}
-      ];
-      requests.forEach((request) => {
+      _.each(requests, request => {
         request.operation = {{classname}}Service.{{operationId}}
-        failItService(request);
+        th.failItService(request);
       });
     });
   })
+    {{/x-head-method}}
+  {{/vendorExtensions}}
 {{/operation}}
 
 {{/operations}}

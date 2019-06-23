@@ -5,20 +5,18 @@
 process.env.NODE_ENV = 'test'
 
 require('../../src/bootstrap')
-
 const config = require('config')
 const logger = require('../../src/lib/logger')
-const testHelper = require('../lib/testHelper')
 const { cleanData, initData } = require('../../scripts/tools')
 
 describe('{{openAPI.info.title}} Unit Test', () => {
-  let app
   let infoLogs = []
   let errorLogs = []
   let debugLogs = []
   const info = logger.info
   const error = logger.error
   const debug = logger.debug
+  const fullError = logger.logFullError
 
   /**
    * Sleep with time from input
@@ -26,16 +24,6 @@ describe('{{openAPI.info.title}} Unit Test', () => {
    */
   const sleep = (time) => new Promise((resolve) => {
     setTimeout(resolve, time)
-  })
-
-  /**
-   * Close http server
-   * @param {Object} server the server
-   */
-  const closeServer = (server) => new Promise((resolve) => {
-    server.close(() => {
-      resolve()
-    })
   })
 
   before(async () => {
@@ -52,32 +40,22 @@ describe('{{openAPI.info.title}} Unit Test', () => {
       errorLogs.push(message)
       error(message)
     }
-
-    testHelper.initLogs(errorLogs)
-
-    // start the application
-    app = require('../../app')
-
-    // wait until application init successfully
-    while (true) {
-      if (infoLogs.some(x => String(x).includes('Server running on http://localhost:'))) {
-        break
-      }
-      await sleep(config.WAIT_TIME)
+    logger.logFullError = (message) => {
+      errorLogs.push(message)
+      error(message)
     }
 
     await cleanData()
     await initData()
+    await sleep(config.WAIT_TIME)
   })
 
   after(async () => {
-    // close server
-    await closeServer(app)
-
     // restore logger
     logger.error = error
     logger.info = info
     logger.debug = debug
+    logger.logFullError = fullError
   })
 
   describe('Service Unit Test', () => {

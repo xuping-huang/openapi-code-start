@@ -2,10 +2,7 @@
 * {{baseName}} Controller
 */
 
-const merge = require('merge-deep')
 const httpStatus = require('http-status')
-const helper = require('../lib/helper')
-
 const {{classname}}Service = require('../service/service.{{classname}}')
 
 {{#operations}}
@@ -97,20 +94,25 @@ const {{classname}}Service = require('../service/service.{{classname}}')
  */
 {{/swgdoc}}
 {{^swgdoc}}
+{{#vendorExtensions}}
+  {{^x-head-method}}
 /**
- * {{#vendorExtensions}}{{#x-get-method}}{{#isListContainer}}Retrieve all {{classname}} data in the system.{{/isListContainer}}{{^isListContainer}}Retrieve a {{classname}} by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}Create a new {{classname}} in the system.{{/x-post-method}}{{#x-patch-method}}Update partial content of a {{classname}} in the system.{{/x-patch-method}}{{#x-put-method}}Update a {{returnBaseType}} in the system.{{/x-put-method}}{{#x-delete-method}}Delete a {{classname}} in the system.{{/x-delete-method}}{{/vendorExtensions}}
+ * {{#x-get-method}}{{#isListContainer}}Retrieve all {{spaceReturnType}} data in the system.{{/isListContainer}}{{^isListContainer}}Retrieve a {{spaceReturnType}} by id.{{/isListContainer}}{{/x-get-method}}{{#x-post-method}}Create a new {{spaceReturnType}} in the system.{{/x-post-method}}{{#x-patch-method}}Update partial content of a {{spaceReturnType}} in the system.{{/x-patch-method}}{{#x-put-method}}Update a {{spaceReturnType}} in the system.{{/x-put-method}}{{#x-delete-method}}Delete a {{spaceReturnType}} in the system.{{/x-delete-method}}
  * {{notes}}
  * @param {Object} req - the request object
  * @param {Object} res - the response object
- * @param {Function} next - pass process control to the next component.
+ * @param {Function} _next - pass process control to the next component.
  */
+  {{/x-head-method}}
+{{/vendorExtensions}}
 {{/swgdoc}}
-module.exports.{{nickname}} = async (req, res, next) => {
-  const params = merge(req.query, req.body, req.params)
-  const data = await {{classname}}Service.{{nickname}}(params{{^vendorExtensions.x-get-method}}, req.authUser{{/vendorExtensions.x-get-method}})
   {{#vendorExtensions}}
+  {{^x-head-method}}
+module.exports.{{nickname}} = async (req, res, _next) => {
+  {{/x-head-method}}
   {{#x-get-method}}
   {{#isListContainer}}
+  const data = await {{classname}}Service.{{nickname}}(req.query)
   {{#x-search-page}}
   const pagingData = helper.formatPagingData(req, data)
   res.set(pagingData.Headers).json(pagingData.Items)
@@ -120,23 +122,30 @@ module.exports.{{nickname}} = async (req, res, next) => {
   {{/x-search-page}}
   {{/isListContainer}}
   {{^isListContainer}}
+  const data = await {{classname}}Service.{{nickname}}(req.params.{{caseReturnType}}Id)
   res.json(data)
   {{/isListContainer}}
   {{/x-get-method}}
   {{#x-post-method}}
+  const data = await {{classname}}Service.{{nickname}}(req.body, req.authUser)
   res.status(httpStatus.CREATED).json(data)
   {{/x-post-method}}
   {{#x-put-method}}
+  const data = await {{classname}}Service.{{nickname}}(req.params.{{caseReturnType}}Id, req.body, req.authUser)
   res.json(data)
   {{/x-put-method}}
   {{#x-patch-method}}
+  const data = await {{classname}}Service.{{nickname}}(req.params.{{caseReturnType}}Id, req.body, req.authUser)
   res.json(data)
   {{/x-patch-method}}
   {{#x-delete-method}}
-  res.json(data)
+  await {{classname}}Service.{{nickname}}(req.params.{{caseReturnType}}Id)
+  res.status(httpStatus.NO_CONTENT).json()
   {{/x-delete-method}}
-  {{/vendorExtensions}}
+{{^x-head-method}}
 }
 
+{{/x-head-method}}
+{{/vendorExtensions}}
 {{/operation}}
 {{/operations}}

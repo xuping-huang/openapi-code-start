@@ -1,104 +1,56 @@
 /**
 * DB Scripts
 */
+global.Promise = require('bluebird')
 const fs = require('fs')
 const path = require('path')
-const merge = require('merge-deep')
-const XLSX = require('xlsx')
-const Model = require('../src/model/index')
+const _ = require('lodash')
+const helper = require('../src/lib/helper')
+const { Table } = require('../src/constants.js')
 {{#orm_isSequelize}}
+const models = require('../src/model/index')
 const sequelize = require('../src/lib/db').dbSequelize
 {{/orm_isSequelize}}
 
-const cleanData = async () => {
+const TEST_USER_ID = '12345'
+
+module.exports.cleanData = async () => {
 {{#orm_isSequelize}}
   // await sequelize.truncate({ cascade: true })
   await sequelize.sync({ force: true })
 {{/orm_isSequelize}}
-  return Promise.resolve()
-}
-
-module.exports.cleanData = cleanData
-
-const SheetName = {
-{{#models}}
-  {{#model}}
-    {{#vendorExtensions}}
-      {{#x-table-model}}
-  {{classVarName}}: '{{classVarName}}',
-      {{/x-table-model}}
-    {{/vendorExtensions}}
-  {{/model}}
-{{/models}}
-}
-
-module.exports.createSheet = async () => {
-  const workbook = {
-    SheetNames: [],
-    Sheets: {}
+{{#db_isDynamoDB}}
+  {{#models}}
+    {{#model}}
+      {{#vendorExtensions}}
+        {{#x-table-model}}
+  const {{classname}}s = await helper.scan(Table.{{classname}})
+  for (const record of {{classname}}s) {
+    await record.delete()
   }
-  const COLUMN_NAME = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  for (let sheet in SheetName) {
-    workbook.SheetNames.push(sheet)
-    let modelColumn = { '!ref': 'A1:Z1' }
-    for (let model in Model) {
-      if (String(model) === String(sheet + 'Model')) {
-        let ind = 0
-        for (let prop in Model[model].tableAttributes) {
-          const pn = COLUMN_NAME[ind] + '1'
-          modelColumn[pn] = { v: prop }
-          ind++
-        }
-      }
-    }
-    workbook.Sheets[sheet] = modelColumn
-  }
-  
-  XLSX.writeFile(workbook, path.resolve(__dirname, 'data.xlsx'))
-}
-
-module.exports.loadData = async () => {
-  const filePath = path.resolve(__dirname, 'data.xlsx')
-  const fileContent = fs.readFileSync(filePath)
-  const workbook = XLSX.read(fileContent, { type: 'buffer' })
-
-{{#models}}
-  {{#model}}
-    {{#vendorExtensions}}
-      {{#x-table-model}}
-  const sheet{{classVarName}} = XLSX.utils.sheet_to_json(workbook.Sheets[SheetName.{{classVarName}}])
-      {{/x-table-model}}
-    {{/vendorExtensions}}
-  {{/model}}
-{{/models}}
-  return {
-{{#models}}
-  {{#model}}
-    {{#vendorExtensions}}
-      {{#x-table-model}}
-    sheet{{classVarName}},
-      {{/x-table-model}}
-    {{/vendorExtensions}}
-  {{/model}}
-{{/models}}
-  }
+        {{/x-table-model}}
+      {{/vendorExtensions}}
+    {{/model}}
+  {{/models}}
+{{/db_isDynamoDB}}
 }
 
 module.exports.initData = async () => {
-  const filePath = path.resolve(__dirname, 'data.xlsx')
-  const fileContent = fs.readFileSync(filePath)
-  const workbook = XLSX.read(fileContent, { type: 'buffer' })
+  const now = new Date()
 {{#models}}
   {{#model}}
     {{#vendorExtensions}}
       {{#x-table-model}}
-
-  const sheet{{classVarName}} = XLSX.utils.sheet_to_json(workbook.Sheets[SheetName.{{classVarName}}])
-  for (let row of sheet{{classVarName}}) {
-    const data = merge(row, { createUser: 1, modifyUser: 1 })
-    const model = Model.{{classVarName}}Model.build(data)
-    await model.save()
-  }
+  const {{classname}}Data = fs.readFileSync(path.resolve(__dirname, './{{classname}}.json').toString()).toString()
+  const {{classname}}s = JSON.parse({{classname}}Data)
+  _.each({{classname}}s, async (data) => {
+    await helper.create(Table.{{classname}}, _.assign({
+      createdAt: now,
+      createdBy: TEST_USER_ID,
+      updatedAt: now,
+      updatedBy: TEST_USER_ID
+    }, data))
+  })
       {{/x-table-model}}
     {{/vendorExtensions}}
   {{/model}}

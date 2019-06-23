@@ -1,6 +1,11 @@
 /**
- * export all model together
+ * Initialize and export all model together
 */
+{{#db_isDynamoDB}}
+const config = require('config')
+const dynamoose = require('dynamoose')
+const { Table } = require('../constants')
+{{/db_isDynamoDB}}
 {{#models}}
 {{#model}}
 {{#vendorExtensions}}
@@ -11,6 +16,7 @@ const {{name}}Model = require('./{{classFilename}}.model')
 {{/model}}
 {{/models}}
 
+{{#orm_isSequelize}}
 {{#models}}
   {{#model}}
     {{#vendorExtensions}}
@@ -36,3 +42,34 @@ module.exports = {
 {{/model}}
 {{/models}}
 }
+{{/orm_isSequelize}}
+{{#db_isDynamoDB}}
+dynamoose.AWS.config.update({
+  accessKeyId: config.DYNAMODB.AWS_ACCESS_KEY_ID,
+  secretAccessKey: config.DYNAMODB.AWS_SECRET_ACCESS_KEY,
+  region: config.DYNAMODB.AWS_REGION
+})
+
+if (config.DYNAMODB.AWS_IS_LOCAL === true) {
+  dynamoose.local(config.DYNAMODB.AWS_DYNAMODB_ENDPOINT)
+}
+
+dynamoose.setDefaults({
+  create: false,
+  update: false
+})
+
+module.exports = {
+  DynamoDB: dynamoose.ddb(),
+{{#models}}
+  {{#model}}
+    {{#vendorExtensions}}
+      {{#x-table-model}}
+  {{classname}}: dynamoose.model(Table.{{classname}}, {{name}}Model),
+      {{/x-table-model}}
+    {{/vendorExtensions}}
+  {{/model}}
+{{/models}}
+}
+
+{{/db_isDynamoDB}}
