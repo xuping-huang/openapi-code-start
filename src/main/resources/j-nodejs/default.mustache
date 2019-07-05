@@ -1,0 +1,170 @@
+/**
+* The configuration file.
+*/
+
+module.exports = {
+  LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
+  PORT: process.env.PORT || 3000,
+  API_VERSION: process.env.API_VERSION || '{{{basePathWithoutHost}}}',
+{{#needHttps}}
+  SECURE_PORT: process.env.SECURE_PORT || 443,
+{{/needHttps}}
+{{#userToken}}
+  AUTH_SECRET: process.env.AUTH_SECRET || 'mysecret',
+  {{^needTcJwt}}
+  JWT_KEY_CACHE_TIME: process.env.JWT_KEY_CACHE_TIME || '5d',
+  {{/needTcJwt}}
+  {{#needTcJwt}}
+  VALID_ISSUERS: process.env.VALID_ISSUERS ? process.env.VALID_ISSUERS.replace(/\\"/g, '') : '["https://api.topcoder-dev.com", "https://api.topcoder.com", "https://topcoder-dev.auth0.com/"]',
+  {{/needTcJwt}}
+{{/userToken}}
+{{#kafka}}
+  // bus API config params
+  BUSAPI_URL: process.env.BUSAPI_URL || 'https://api.topcoder-dev.com/v5',
+  KAFKA_ERROR_TOPIC: process.env.KAFKA_ERROR_TOPIC || 'common.error.reporting',
+  // Kafka Event Topic
+  KAFKA_TOPIC: {
+  {{#models}}
+    {{#model}}
+      {{#vendorExtensions}}
+        {{#x-table-model}}
+    {{upperSnakeName}}_CREATED: 'entity.notification.create',
+    {{upperSnakeName}}_UPDATED: 'entity.notification.update',
+    {{upperSnakeName}}_DELETED: 'entity.notification.delete',
+        {{/x-table-model}}
+      {{/vendorExtensions}}
+    {{/model}}
+  {{/models}}
+  },
+{{/kafka}}
+
+{{#m2mToken}}
+  // used to get M2M token
+  AUTH0_URL: process.env.AUTH0_URL,
+  AUTH0_PROXY_SERVER_URL: process.env.AUTH0_PROXY_SERVER_URL,
+  AUTH0_AUDIENCE: process.env.AUTH0_AUDIENCE || 'https://www.topcoder-dev.com',
+  TOKEN_CACHE_TIME: process.env.TOKEN_CACHE_TIME,
+  AUTH0_CLIENT_ID: process.env.AUTH0_CLIENT_ID,
+  AUTH0_CLIENT_SECRET: process.env.AUTH0_CLIENT_SECRET,
+  // M2M token scopes
+  SCOPES: {
+  {{#models}}
+    {{#model}}
+      {{#vendorExtensions}}
+        {{#x-table-model}}
+    {{upperSnakeName}}: {
+      READ: process.env.SCOPE_{{upperSnakeName}}_READ || 'read:{{lowerSnakeName}}',
+      CREATE: process.env.SCOPE_{{upperSnakeName}}_CREATE || 'create:{{lowerSnakeName}}',
+      UPDATE: process.env.SCOPE_{{upperSnakeName}}_UPDATE || 'update:{{lowerSnakeName}}',
+      DELETE: process.env.SCOPE_{{upperSnakeName}}_DELETE || 'delete:{{lowerSnakeName}}',
+      ALL: process.env.SCOPE_{{upperSnakeName}}_ALL || 'all:{{lowerSnakeName}}'
+    },
+        {{/x-table-model}}
+      {{/vendorExtensions}}
+    {{/model}}
+  {{/models}}
+  },
+{{/m2mToken}}
+{{#needAws}}
+  AMAZON: {
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || 'FAKE_ACCESS_KEY',
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || 'FAKE_SECRET_ACCESS_KEY',
+    AWS_REGION: process.env.AWS_REGION || 'ap-southeast-1',
+    AWS_IS_LOCAL: process.env.AWS_IS_LOCAL || true,
+  {{#db_isDynamoDB}}
+    AWS_DYNAMODB_ENDPOINT: process.env.AWS_DYNAMODB_ENDPOINT || 'http://localhost:8000',
+    DYNAMODB_THROUGHPUT_READ: process.env.DYNAMODB_THROUGHPUT_READ || 15,
+    DYNAMODB_THROUGHPUT_WRITE: process.env.DYNAMODB_THROUGHPUT_WRITE || 15,
+  {{/db_isDynamoDB}}
+  {{#needS3}}
+    ATTACHMENT_S3_BUCKET: process.env.ATTACHMENT_S3_BUCKET || 'my-testing-bucket-12345',
+    S3_API_VERSION: process.env.S3_API_VERSION || '2006-03-01',
+  {{/needS3}}
+  },
+{{/needAws}}
+{{#db_isSqlite}}
+  DATABASE: {
+    USERNAME: process.env.DATABASE_USERNAME || 'sqlite',
+    PASSWORD: process.env.DATABASE_PASSWORD || '98096',
+    POOL_MAX: process.env.DATABASE_POOL_MAX || 30
+  },
+{{/db_isSqlite}}
+{{#db_isPostgres}}
+  DATABASE: {
+    USERNAME: process.env.DATABASE_USERNAME || 'postgres',
+    PASSWORD: process.env.DATABASE_PASSWORD || '98096',
+    URL: process.env.DATABASE_URL || 'localhost:5432',
+    NAME: process.env.DATABASE_NAME || 'DBName',
+    POOL_MAX: process.env.DATABASE_POOL_MAX || 30
+  },
+{{/db_isPostgres}}
+{{#db_isMysql}}
+  DATABASE: {
+    USERNAME: process.env.DATABASE_USERNAME || 'mysql',
+    PASSWORD: process.env.DATABASE_PASSWORD || '98096',
+    URL: process.env.DATABASE_URL || 'localhost:3306',
+    NAME: process.env.DATABASE_NAME || 'DBName',
+    POOL_MAX: process.env.DATABASE_POOL_MAX || 30
+  },
+{{/db_isMysql}}
+{{#db_isMariadb}}
+  DATABASE: {
+    USERNAME: process.env.DATABASE_USERNAME || 'mariadb',
+    PASSWORD: process.env.DATABASE_PASSWORD || '98096',
+    URL: process.env.DATABASE_URL || 'localhost:3306',
+    NAME: process.env.DATABASE_NAME || 'DBName',
+    POOL_MAX: process.env.DATABASE_POOL_MAX || 30
+  },
+{{/db_isMariadb}}
+{{#db_isMssql}}
+  DATABASE: {
+    USERNAME: process.env.DATABASE_USERNAME || 'mssql',
+    PASSWORD: process.env.DATABASE_PASSWORD || '98096',
+    URL: process.env.DATABASE_URL || 'localhost:1433',
+    NAME: process.env.DATABASE_NAME || 'DBName',
+    POOL_MAX: process.env.DATABASE_POOL_MAX || 30
+  },
+{{/db_isMssql}}
+{{#elasticSearch}}
+  ES: {
+    // above AWS_REGION is used if we use AWS ES
+    HOST: process.env.ES_HOST || 'localhost:9200',
+    API_VERSION: process.env.ES_API_VERSION || '7.2',
+    // TODO FIRST: Adjust ES INDEX
+    INDEXES: {
+  {{#models}}
+    {{#model}}
+      {{#vendorExtensions}}
+        {{#x-table-model}}
+      {{upperSnakeName}}: process.env.ES_{{upperSnakeName}}_INDEX || '{{lowerSnakeName}}',
+        {{/x-table-model}}
+      {{/vendorExtensions}}
+    {{/model}}
+  {{/models}}
+    },
+    ES_TYPE: process.env.ES_TYPE || 'doc' // ES 6.x accepts only 1 Type per index and it's mandatory to define it
+  },
+{{/elasticSearch}}
+{{#needS3}}
+  FILE_UPLOAD_SIZE_LIMIT: process.env.FILE_UPLOAD_SIZE_LIMIT ? Number(process.env.FILE_UPLOAD_SIZE_LIMIT) : 50 * 1024 * 1024, // 50M
+{{/needS3}}
+{{#needPagination}}
+  PAGE: {
+    PERPAGE_DEFAULT: process.env.PERPAGE_DEFAULT || 20,
+    PER_PAGE_MAX: process.env.PERPAGE_MAX || 200
+  },
+{{/needPagination}}
+{{#needEmail}}
+  EMAIL: {
+    ACCOUNT: process.env.EMAIL_SERVER_ACCOUNT || 'FAKE_EMAIL_ACCOUNT',
+    PASSWORD: process.env.EMAIL_SERVER_PASSWORD || 'FAKE_EMAIL_PASSWORD',
+    FROM: process.env.EMAIL_FROM || 'fake@email.com',
+    HOST: process.env.EMAIL_SERVER_HOST || 'smtp.email.com',
+    HOST_PORT: process.env.EMAIL_SERVER_HOST_PORT || 465
+  },
+{{/needEmail}}
+  LOG: {
+    LOGGER_DIR: process.env.LOGGER_DIR || 'log',
+    LOGGER_FILE: process.env.LOGGER_FILE || 'access.log'
+  }
+}

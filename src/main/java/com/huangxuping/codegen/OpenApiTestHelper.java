@@ -98,7 +98,7 @@ public class OpenApiTestHelper {
             if ( response.code.equalsIgnoreCase("404") ) {
                 tests.add(new PostmanTest("404 - reference id not found"));
             } else if ( response.code.equalsIgnoreCase("405") ) {
-                tests.add(new PostmanTest("405 - not allow to call this method"));
+                tests.add(new PostmanTest("403 - not allow to call this method"));
             } else if ( response.code.equalsIgnoreCase("409") ) {
                 tests.add(new PostmanTest("409 - entity property conflict"));
             } else if ( response.code.equalsIgnoreCase("415") ) {

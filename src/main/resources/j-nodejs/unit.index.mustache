@@ -6,8 +6,9 @@ process.env.NODE_ENV = 'test'
 
 require('../../src/bootstrap')
 const config = require('config')
-const logger = require('../../src/lib/logger')
+const logger = require('../../src/common/logger')
 const { cleanData, initData } = require('../../scripts/tools')
+const { loadES } = require('../../scripts/esload-helper')
 
 describe('{{openAPI.info.title}} Unit Test', () => {
   let infoLogs = []
@@ -38,16 +39,26 @@ describe('{{openAPI.info.title}} Unit Test', () => {
     }
     logger.error = (message) => {
       errorLogs.push(message)
-      error(message)
     }
     logger.logFullError = (message) => {
       errorLogs.push(message)
-      error(message)
     }
 
-    await cleanData()
     await initData()
+    // TODO FIRST: remove if no need elastic search
+    await loadES()
     await sleep(config.WAIT_TIME)
+
+    // TODO: remove if no mock api
+    // start the application
+    require('../../mock-api/app')
+    // wait until application init successfully
+    while (true) {
+      if (infoLogs.some(x => String(x).includes('Express mock server listening on port'))) {
+        break
+      }
+      await sleep(config.WAIT_TIME)
+    }
   })
 
   after(async () => {

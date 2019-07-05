@@ -1,45 +1,86 @@
 /*
 * Test data for all resources
 */
+const _ = require('lodash')
 const config = require('config')
-const httpStatus = require('http-status')
+const httpStatus = require('http-status-codes')
 const constants = require('./testConstants')
 const moment = require('moment')
+const jom = require('./jom')
 
 module.exports.BaseUrl = `http://localhost:${config.PORT}${config.API_VERSION}`
 module.exports.BEFORE_TEST_START = moment().subtract(1, 'minutes')
-module.exports.NO_EXIST_ID = '14972705-6850-405b-b738-1745ffa39570'
+const NO_EXIST_ID = '14972705-6850-405b-b738-1745ffa39570'
+module.exports.NO_EXIST_ID = NO_EXIST_ID
+module.exports.NO_EXIST_NAME = 'no exist name'
 module.exports.SCRIPT_ID = '12345'
 module.exports.HTTP_STATUS = {
   CREATE_SUCCESS: httpStatus.CREATED,
   DELETE_SUCCESS: httpStatus.NO_CONTENT
 }
 module.exports.STRING_INVALIDS = [ 123, undefined, [], {}, true ]
-module.exports.BOOLEAN_INVALIDS = [ 123, 'abc', [], {} ]
+module.exports.STRING_ARRAY_INVALIDS = [ undefined, [], 123, {}, 'abc', true, [123], [{}], [['string']], [true], ['repeat', 'repeat'] ]
+module.exports.GROUPS_ARRAY_INVALIDS = [ 123, {}, 'abc', true, [123], [{}], [['string']], [true], ['repeat', 'repeat'] ]
+module.exports.GUID_INVALIDS = [ 123, 'abc', undefined, [], {}, true ]
+module.exports.BOOLEAN_INVALIDS = [ 123, undefined, 'abc', [], {} ]
+module.exports.DATE_INVALIDS = [ undefined, 'abc', [], {}, true, '2019-16-22T16:28:39.882Z' ]
+module.exports.DURATION_INVALIDS = [ undefined, -1, 0, 'abc', [], {} ]
+module.exports.POSITIVE_INT_INVALIDS = [ undefined, -1, 0, 1.23, 'abc', [], {}, true, Number.MAX_SAFE_INTEGER + 10 ]
+module.exports.PREDECESSOR_INVALIDS = [ 123, 'abc', [], {}, true ]
+module.exports.PAGE_INVALIDS = [ -1, 0, 1.23, 'abc', [], {}, true, Number.MAX_SAFE_INTEGER + 10 ]
+module.exports.PERPAGE_INVALIDS = [ 0, 101, 1.23, 'abc', [], {}, true ]
+
+// TODO FIRST: change token scope to right
+const M2M_TOKEN = {
+  ENTITY_CREATE: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3RvcGNvZGVyLWRldi5hdXRoMC5jb20vIiwic3ViIjoiZW5qdzE4MTBlRHozWFR3U08yUm4yWTljUVRyc3BuM0JAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vbTJtLnRvcGNvZGVyLWRldi5jb20vIiwiaWF0IjoxNTUwOTA2Mzg4LCJleHAiOjU1ODA5OTI3ODgsImF6cCI6ImVuancxODEwZUR6M1hUd1NPMlJuMlk5Y1FUcnNwbjNCIiwic2NvcGUiOiJjcmVhdGU6ZW50aXR5IiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.L8yhZMtD6-jCfvcl9aBLVbrFbZOnv-iECKJY-S3A56A',
+  ENTITY_READ: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3RvcGNvZGVyLWRldi5hdXRoMC5jb20vIiwic3ViIjoiZW5qdzE4MTBlRHozWFR3U08yUm4yWTljUVRyc3BuM0JAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vbTJtLnRvcGNvZGVyLWRldi5jb20vIiwiaWF0IjoxNTUwOTA2Mzg4LCJleHAiOjU1ODA5OTI3ODgsImF6cCI6ImVuancxODEwZUR6M1hUd1NPMlJuMlk5Y1FUcnNwbjNCIiwic2NvcGUiOiJyZWFkOmVudGl0eSIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.Ux-AEay5OeA7U0UQmtuEFzLP_y2CMOJVJJDg1VQwfTY',
+  ENTITY_UPDATE: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3RvcGNvZGVyLWRldi5hdXRoMC5jb20vIiwic3ViIjoiZW5qdzE4MTBlRHozWFR3U08yUm4yWTljUVRyc3BuM0JAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vbTJtLnRvcGNvZGVyLWRldi5jb20vIiwiaWF0IjoxNTUwOTA2Mzg4LCJleHAiOjU1ODA5OTI3ODgsImF6cCI6ImVuancxODEwZUR6M1hUd1NPMlJuMlk5Y1FUcnNwbjNCIiwic2NvcGUiOiJ1cGRhdGU6ZW50aXR5IiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.a7iS9zKCBuXOT4hw4g3V7q978RJ6-N8AtSq4uQSCZmw',
+  ENTITY_DELETE: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3RvcGNvZGVyLWRldi5hdXRoMC5jb20vIiwic3ViIjoiZW5qdzE4MTBlRHozWFR3U08yUm4yWTljUVRyc3BuM0JAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vbTJtLnRvcGNvZGVyLWRldi5jb20vIiwiaWF0IjoxNTUwOTA2Mzg4LCJleHAiOjU1ODA5OTI3ODgsImF6cCI6ImVuancxODEwZUR6M1hUd1NPMlJuMlk5Y1FUcnNwbjNCIiwic2NvcGUiOiJkZWxldGU6ZW50aXR5IiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.Qd076l8hbHzWajycW-Z9k06RLYPMg3WYgd6U_XlTsd8',
+  ENTITY_ALL: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3RvcGNvZGVyLWRldi5hdXRoMC5jb20vIiwic3ViIjoiZW5qdzE4MTBlRHozWFR3U08yUm4yWTljUVRyc3BuM0JAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vbTJtLnRvcGNvZGVyLWRldi5jb20vIiwiaWF0IjoxNTUwOTA2Mzg4LCJleHAiOjU1ODA5OTI3ODgsImF6cCI6ImVuancxODEwZUR6M1hUd1NPMlJuMlk5Y1FUcnNwbjNCIiwic2NvcGUiOiJhbGw6ZW50aXR5IiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.hRUYJML1o_9EBDu89tBoB1B5q85Ftq7b-7vsM_pyBWo',
+  OTHER_ALL: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3RvcGNvZGVyLWRldi5hdXRoMC5jb20vIiwic3ViIjoiZW5qdzE4MTBlRHozWFR3U08yUm4yWTljUVRyc3BuM0JAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vbTJtLnRvcGNvZGVyLWRldi5jb20vIiwiaWF0IjoxNTUyMTE5NDQ4LCJleHAiOjU1NjIyMDU4NDgsImF6cCI6ImVuancxODEwZUR6M1hUd1NPMlJuMlk5Y1FUcnNwbjNCIiwic2NvcGUiOiJ1cGRhdGU6b3RoZXIgYWxsOm90aGVyIHJlYWQ6b3RoZXIgY3JlYXRlOm90aGVyIGRlbGV0ZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.SoEMdyqoLRwvjnq-M0qxuh09SHTox9vduZwS3XELaYE'
+}
+module.exports.M2M_TOKEN = M2M_TOKEN
 
 const Token = {
   Admin: {
     token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJBZG1pbmlzdHJhdG9yIl0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLmNvbSIsImhhbmRsZSI6IlRvbnlKIiwiZXhwIjo1NTUzMDE5OTI1OSwidXNlcklkIjoiNDA0MzMyODgiLCJpYXQiOjE1MzAxOTg2NTksImVtYWlsIjoiYWRtaW5AdG9wY29kZXIuY29tIiwianRpIjoiYzNhYzYwOGEtNTZiZS00NWQwLThmNmEtMzFmZTk0Yjk1NjFjIn0.pIHUtMwIV07ZgfaUk9916X49rgjKclM9kzQP419LBo0',
     userId: '40433288',
     handle: 'TonyJ',
-    role: 'admin'
+    role: 'admin',
+    roles: ['Administrator'],
+    isMachine: false
   },
   Copilot: {
-    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJDb3BpbG90Il0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLmNvbSIsImhhbmRsZSI6ImNhbGxtZWthdG9vdGllIiwiZXhwIjo1NTUzMDE5OTI1OSwidXNlcklkIjoiNDA0OTMwMTIiLCJpYXQiOjE1MzAxOTg2NTksImVtYWlsIjoiY2FsbG1la2F0b290aWVAdG9wY29kZXIuY29tIiwianRpIjoiYzNhYzYwOGEtNTZiZS00NWQwLThmNmEtMzFmZTk0Yjk1NjFjIn0.AR1-A7zm8Rur-P36De4GUsSO1FsSb2CWby8KUZ66Dm0',
-    userId: '40493012',
-    handle: 'callmekatootie',
-    role: 'copilot'
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJDb3BpbG90IiwiQ29ubmVjdCBTdXBwb3J0Il0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLWRldi5jb20iLCJoYW5kbGUiOiJHaG9zdGFyIiwiZXhwIjo1NTkyODAwMDc3LCJ1c2VySWQiOiIxNTE3NDMiLCJpYXQiOjE1NDk3OTk0NzcsImVtYWlsIjoiZW1haWxAZG9tYWluLmNvbS56IiwianRpIjoiMTJjMWMxMGItOTNlZi00NTMxLTgzMDUtYmE2NjVmYzRlMWI0In0.jYqVnr4YSMJDrvSHqELXgDggGj6jMz1-j-3ejmaLLZ0',
+    userId: '151743',
+    handle: 'Ghostar',
+    role: 'copilot',
+    roles: ['Copilot'],
+    isMachine: false
+  },
+  Copilot2: {
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJDb3BpbG90Il0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLWRldi5jb20iLCJoYW5kbGUiOiJob2hvc2t5IiwiZXhwIjo1NTkxNzkyMzcwLCJ1c2VySWQiOiIxNjA5NjgyMyIsImlhdCI6MTU0OTc5MTc3MCwiZW1haWwiOiJlbWFpbEBkb21haW4uY29tLnoiLCJqdGkiOiJmMWU2MTNiZS1kNWI5LTQyMzEtYmFhZS1lZTlmMmQyMjcyMzQifQ.nwv9GuyPDvzArN4nT2Sb_uNnkDFRhqe6KT3IGtTktzM',
+    userId: '16096823',
+    handle: 'hohosky',
+    role: 'copilot2',
+    roles: ['Copilot'],
+    isMachine: false
   },
   User: {
-    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJUb3Bjb2RlciBVc2VyIl0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLmNvbSIsImhhbmRsZSI6InRlc3Rpbmd1c2VyMTIzIiwiZXhwIjo1NTUzMDE5OTI1OSwidXNlcklkIjoiODU0Nzg5OSIsImlhdCI6MTUzMDE5ODY1OSwiZW1haWwiOiJ0ZXN0aW5ndXNlcjEyM0B0b3Bjb2Rlci5jb20iLCJqdGkiOiJjM2FjNjA4YS01NmJlLTQ1ZDAtOGY2YS0zMWZlOTRiOTU2MWMifQ.EYeQthgZtEpt3p3EMYscic2_crNuzhuPGlTcUVWXc0c',
-    userId: '8547899',
-    handle: 'testinguser123',
-    role: 'user'
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJUb3Bjb2RlciBVc2VyIl0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLWRldi5jb20iLCJoYW5kbGUiOiJkZW5pcyIsImV4cCI6NTU2MjgwMDE2OSwidXNlcklkIjoiMjUxMjgwIiwiaWF0IjoxNTQ5Nzk5NTY5LCJlbWFpbCI6ImVtYWlsQGRvbWFpbi5jb20ueiIsImp0aSI6IjljNDUxMWM1LWMxNjUtNGExYi04OTllLWI2NWFkMGUwMmI1NSJ9.RXk4kxRUF1eF5o7MIfKCrsbTVqwNpTRd4XTcIaiNB7Y',
+    userId: '251280',
+    handle: 'denis',
+    role: 'user',
+    roles: ['Topcoder User'],
+    isMachine: false
   },
   OtherRole: {
-    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJPdGhlciJdLCJpc3MiOiJodHRwczovL2FwaS50b3Bjb2Rlci5jb20iLCJoYW5kbGUiOiJ4dXBpbmcuaHVhbmciLCJleHAiOjU1NTMwMTk5MjU5LCJ1c2VySWQiOiI4NTQ3ODIiLCJpYXQiOjE1MzAxOTg2NTksImVtYWlsIjoieHVwaW5nLmh1YW5nQHRvcGNvZGVyLmNvbSIsImp0aSI6ImMzYWM2MDhhLTU2YmUtNDVkMC04ZjZhLTMxZmU5NGI5NTYxYyJ9.nVhsFcBOv--WbK6cNadgL6B2FgDB5AM6urvfJfEwiGA',
-    userId: '4',
-    handle: 'other'
+    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJPdGhlciBVc2VyIl0sImlzcyI6Imh0dHBzOi8vYXBpLnRvcGNvZGVyLWRldi5jb20iLCJoYW5kbGUiOiJvdGhlcnMiLCJleHAiOjU1NjI4MDAxNjksInVzZXJJZCI6IjUyMTI4MCIsImlhdCI6MTU0OTc5OTU2OSwiZW1haWwiOiJlbWFpbEBkb21haW4uY29tLnoiLCJqdGkiOiI5YzQ1MTFjNS1jMTY1LTRhMWItODk5ZS1iNjVhZDBlMDJiNTUifQ.7KcLnOOM-dA4uxRh6MAUTR_5VP5ph_E8NmStiFc1S0I',
+    userId: '521280',
+    handle: 'others',
+    role: 'other user',
+    roles: ['Other User'],
+    isMachine: false
   },
   None: {
     token: ''
@@ -50,12 +91,15 @@ const Token = {
   Expired: {
     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1Iiwicm9sZXMiOlsiQWRtaW5pc3RyYXRvciJdLCJoYW5kbGUiOiJub25lIiwiaXNzIjoiaHR0cHM6Ly9hcGkudG9wY29kZXItZGV2LmNvbSIsImlhdCI6MTU2MDIzMDY0MCwiZXhwIjoxNTYwMjMwNjQxfQ.axBsVSfFIycn_CGXV1AczCTho9S3Jj8dYy_jE8jV6XU'
   },
-  M2M: {
-    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOiJhbGw6cmV2aWV3IGFsbDpyZXZpZXciLCJzdWIiOiJ0ZXN0IiwiaXNzIjoiaHR0cHM6Ly9hcGkudG9wY29kZXIuY29tIiwiZXhwIjo1NTUzMDE5OTI1OSwiaWF0IjoxNTMwMTk4NjU5LCJqdGkiOiJjM2FjNjA4YS01NmJlLTQ1ZDAtOGY2YS0zMWZlOTRiOTU2MWMifQ.uBgXNmef8I3E5cgiUjzMzcynIscD9DYbSV5b0-BX7iw',
-    sub: 'test'
+  M2M_USER: {
+    token: '',
+    sub: 'enjw1810eDz3XTwSO2Rn2Y9cQTrspn3B@clients',
+    isMachine: true
   },
   M2M_OTHER: {
-    token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOiJhbGw6b3RoZXIgYWxsOm90aGVyIiwic3ViIjoib3RoZXIiLCJpc3MiOiJodHRwczovL2FwaS50b3Bjb2Rlci5jb20iLCJleHAiOjU1NTMwMTk5MjU5LCJpYXQiOjE1MzAxOTg2NTksImp0aSI6ImMzYWM2MDhhLTU2YmUtNDVkMC04ZjZhLTMxZmU5NGI5NTYxYyJ9.65QVkaJc7o5ZsdbTI-pQiChg9eMsIVDm2wbmur4Bldo'
+    token: M2M_TOKEN.OTHER_ALL
+    sub: 'enjw1810eDz3XTwSO2Rn2Y9cQTrspn3B@clients',
+    isMachine: true
   }
 }
 module.exports.Token = Token
@@ -110,28 +154,48 @@ const authFailRequests = (url, body) => [
 ]
 module.exports.authFailRequests = authFailRequests
 
-{{#apiInfo}}
-  {{#apis}}
-module.exports.{{baseName}} = {
-  // TODO: add id value
-  ForGet: {
-    id: ''
-  },
-  ForDelete: {
-    id: '',
-    id1: '',
-    id2: '',
-  },
-  ForUpdate: {
-    id: ''
-  },
-  ForPatch: {
-    id: ''
+/**
+ * TODO: Return the test data for array property XXX.
+ * @param {String} url url endpoint
+ * @param {Object} body the body content
+ * @param {String} token the token
+ */
+const authArrayPropertyXXX = (url, body, token, isRequired = true) => {
+  const requests = [
+    {
+      title: '400 - prizeSets: should fail when empty array',
+      params: [url, _.assign({}, body, { prizeSets: [] }), token],
+      status: httpStatus.BAD_REQUEST,
+      message: jom.arrayNotEmpty('prizeSets').message
+    },
+    {
+      title: '400 - prizeSets: should fail when type undefined',
+      params: [url, _.assign({}, body, {
+        prizeSets: [
+          {
+            description: 'description',
+            prizes: [{
+              description: 'prize description',
+              type: 'prize type',
+              value: 1000
+            }]
+          }
+        ]}), token],
+      status: httpStatus.BAD_REQUEST,
+      message: jom.required('type').message
+    }
+  ]
+  if (isRequired) {
+    requests.push({
+      title: '400 - prizeSets: should fail when undefined',
+      params: [url, _.assign({}, body, { prizeSets: undefined }), token],
+      status: httpStatus.BAD_REQUEST,
+      message: jom.required('prizeSets').message
+    })
   }
+  return requests.map(item => _.assign({}, item, { params: item.params.filter(value => !_.isUndefined(value)) }))
 }
-  {{/apis}}
-{{/apiInfo}}
-
+module.exports.authArrayPropertyXXX = authArrayPropertyXXX
 
 module.exports.ErrorMessage = {
   // TODO: modify name

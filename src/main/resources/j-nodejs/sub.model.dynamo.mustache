@@ -23,8 +23,8 @@ const schema = new Schema({
 },
 {
   throughput: {
-    read: Number(config.DYNAMODB.AWS_READ_UNITS),
-    write: Number(config.DYNAMODB.AWS_WRITE_UNITS)
+    read: Number(config.AMAZON.DYNAMODB_THROUGHPUT_READ),
+    write: Number(config.AMAZON.DYNAMODB_THROUGHPUT_WRITE)
   },
   timestamps: true // adds createdAt and updatedAt fields
 })

@@ -4,11 +4,14 @@
 const _ = require('lodash')
 const Joi = require('@hapi/joi')
 const uuid = require('uuid/v4')
-const helper = require('../lib/helper')
+const config = require('config')
+const helper = require('../common/helper')
 const { Table } = require('../constants')
-const logger = require('../lib/logger')
+const logger = require('../common/logger')
+const errors = require('../common/app-error')
+const HttpStatus = require('http-status')
 {{#orm_isSequelize}}
-const models = require('../model/index')
+const models = require('../models/index')
 const sequelize = require('../lib/db').sequelize
 {{/orm_isSequelize}}
 

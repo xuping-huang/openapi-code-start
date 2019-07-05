@@ -16,18 +16,18 @@
   {{#isString}}
   {{^isEnum}}
     {{^isUuid}}
-  {{baseName}}: Joi.string().trim(){{#minLength}}.min({{minLength}}){{/minLength}}{{#maxLength}}.max({{maxLength}}){{/maxLength}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
+  {{baseName}}: Joi.string(){{#minLength}}.min({{minLength}}){{/minLength}}{{#maxLength}}.max({{maxLength}}){{/maxLength}}.{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
     {{/isUuid}}
   {{/isEnum}}
   {{#isEnum}}
   {{baseName}}: Joi.string().uppercase().valid(['ONE', 'TWO']).{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isEnum}}
   {{#isUuid}}
-  {{baseName}}: Joi.string().trim().lowercase().uuid().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
+  {{baseName}}: Joi.string().uuid().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isUuid}}
   {{/isString}}
   {{#isBoolean}}
-  {{baseName}}: Joi.boolTransform().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
+  {{baseName}}: Joi.boolean().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},
   {{/isBoolean}}
   {{#isDate}}
   {{baseName}}: Joi.date().iso().{{#required}}required(){{/required}}{{^required}}optional(){{/required}},

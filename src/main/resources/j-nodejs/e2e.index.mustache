@@ -6,8 +6,9 @@ process.env.NODE_ENV = 'test'
 
 require('../../src/bootstrap')
 const config = require('config')
-const logger = require('../../src/lib/logger')
+const logger = require('../../src/common/logger')
 const { cleanData, initData } = require('../../scripts/tools')
+const { loadES } = require('../../scripts/esload-helper')
 
 describe('{{openAPI.info.title}} E2E Test', () => {
   let infoLogs = []
@@ -38,23 +39,25 @@ describe('{{openAPI.info.title}} E2E Test', () => {
     }
     logger.error = (message) => {
       errorLogs.push(message)
-      error(message)
     }
     logger.logFullError = (message) => {
       errorLogs.push(message)
-      error(message)
     }
 
-    await cleanData()
     await initData()
+    // TODO FIRST: remove if no need elastic search
+    await loadES()
     await sleep(config.WAIT_TIME)
 
     // start the application
+    // TODO: remove if no need mock api
+    require('../../mock-api/app')
     require('../../app')
 
     // wait until application init successfully
     while (true) {
-      if (infoLogs.some(x => String(x).includes('Server running on http://localhost:'))) {
+      if (infoLogs.some(x => String(x).includes('Express server listening on port')) &&
+        infoLogs.some(x => String(x).includes('Express challenge mock server listening on port'))) {
         break
       }
       await sleep(config.WAIT_TIME)

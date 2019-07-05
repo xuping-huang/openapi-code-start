@@ -5,11 +5,11 @@ global.Promise = require('bluebird')
 const fs = require('fs')
 const path = require('path')
 const _ = require('lodash')
-const helper = require('../src/lib/helper')
+const helper = require('../src/common/helper')
 const { Table } = require('../src/constants.js')
 {{#orm_isSequelize}}
-const models = require('../src/model/index')
-const sequelize = require('../src/lib/db').dbSequelize
+const models = require('../src/models/index')
+const sequelize = require('../src/common/db').dbSequelize
 {{/orm_isSequelize}}
 
 const TEST_USER_ID = '12345'

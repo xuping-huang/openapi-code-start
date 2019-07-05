@@ -45,13 +45,13 @@ module.exports = {
 {{/orm_isSequelize}}
 {{#db_isDynamoDB}}
 dynamoose.AWS.config.update({
-  accessKeyId: config.DYNAMODB.AWS_ACCESS_KEY_ID,
-  secretAccessKey: config.DYNAMODB.AWS_SECRET_ACCESS_KEY,
-  region: config.DYNAMODB.AWS_REGION
+  accessKeyId: config.AMAZON.AWS_ACCESS_KEY_ID,
+  secretAccessKey: config.AMAZON.AWS_SECRET_ACCESS_KEY,
+  region: config.AMAZON.AWS_REGION
 })
 
-if (config.DYNAMODB.AWS_IS_LOCAL === true) {
-  dynamoose.local(config.DYNAMODB.AWS_DYNAMODB_ENDPOINT)
+if (config.AMAZON.AWS_IS_LOCAL === true) {
+  dynamoose.local(config.AMAZON.AWS_DYNAMODB_ENDPOINT)
 }
 
 dynamoose.setDefaults({

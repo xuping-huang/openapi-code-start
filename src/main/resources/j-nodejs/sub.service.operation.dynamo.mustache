@@ -8,11 +8,50 @@
  * @return {Promise} a collection of {{spaceReturnType}}
  **/
 async function {{nickname}} (params) {
+  {{^elasticSearch}}
   const records = await helper.scan(Table.{{baseName}})
   const filter = _.filter(records, obj => {
     return true
   })
-  return filter
+  // return filter
+  const total = filter.length
+  const result = filter.slice((params.page - 1) * params.perPage, params.page * params.perPage)
+  return { total, page: criteria.page, perPage: criteria.perPage, result }
+  {{/elasticSearch}}
+  {{#elasticSearch}}
+  // TODO: remove below line if elastic search
+  // const records = await helper.scan(Table.{{baseName}})
+  // const filter = _.filter(records, obj => {
+  //   return true
+  // })
+  // // return filter
+  // const total = filter.length
+  // const result = filter.slice((params.page - 1) * params.perPage, params.page * params.perPage)
+  // return { total, page: criteria.page, perPage: criteria.perPage, result }
+  const boolQuery = []
+  const esQuery = {
+    index: config.get('ES.INDEXES.ES_{{upperSnakeReturnType}}_INDEX'),
+    type: config.get('ES.ES_TYPE'),
+    size: params.perPage,
+    from: (params.page - 1) * params.perPage, // Es Index starts from 0
+    body: {
+      query: {
+        bool: {
+          filter: boolQuery
+        }
+      },
+      sort: [{ 'createdAt': { 'order': 'asc' } }]
+    }
+  }
+  // get ES client
+  const esClient = helper.getESClient()
+  // Search with constructed query
+  const docs = await esClient.search(esQuery)
+  // Extract data from hits
+  const total = docs.hits.total
+  const result = _.map(docs.hits.hits, item => item._source)
+  return { total, page: params.page, perPage: params.perPage, result }
+  {{/elasticSearch}}
 }
 
 {{nickname}}.schema = {
@@ -30,7 +69,28 @@ async function {{nickname}} (params) {
  * @return {Promise} the {{spaceReturnType}} obtained by id.
  **/
 async function {{nickname}} ({{caseReturnType}}Id) {
+  {{#elasticSearch}}
+  // TODO: remove below line if not need
+  // const resource = await helper.getById(Table.{{baseName}}, {{caseReturnType}}Id)
+  const esClient = helper.getESClient()
+  let resource
+  try {
+    resource = await esClient.getSource({
+      index: config.get('ES.INDEXES.{{upperSnakeReturnType}}_INDEX'),
+      type: config.get('ES.ES_TYPE'),
+      id: {{caseReturnType}}Id
+    })
+  } catch (e) {
+    if (e.statusCode === HttpStatus.NOT_FOUND) {
+      throw new errors.NotFoundError(`{{baseName}} with id: ${ {{caseReturnType}}Id } does not exist`)
+    } else {
+      throw e
+    }
+  }
+  {{/elasticSearch}}
+  {{^elasticSearch}}
   const resource = await helper.getById(Table.{{baseName}}, {{caseReturnType}}Id)
+  {{/elasticSearch}}
   return resource
 }
 
@@ -47,11 +107,15 @@ async function {{nickname}} ({{caseReturnType}}Id) {
  **/
 async function {{nickname}} (params, currentUser) {
   const ret = await helper.create(Table.{{baseName}}, _.assign({
-     id: uuid(),
-     createdBy: currentUser.handle || currentUser.sub,
-     updatedBy: currentUser.handle || currentUser.sub
-   }, params))
-   return ret
+    id: uuid(),
+    createdBy: currentUser.handle || currentUser.sub,
+    updatedBy: currentUser.handle || currentUser.sub
+  }, params))
+   {{#kafka}}
+  // post bus event
+  await helper.postBusEvent(config.KAFKA_TOPIC.{{upperSnakeReturnType}}_CREATED, ret)
+   {{/kafka}}
+  return ret
 }
 
 {{nickname}}.schema = {
@@ -90,6 +154,10 @@ async function {{nickname}} ({{caseReturnType}}Id, params, currentUser) {
     data[key] = value
   })
   const ret = await helper.update(obj, data)
+ {{#kafka}}
+  // post bus event
+  await helper.postBusEvent(config.KAFKA_TOPIC.{{upperSnakeReturnType}}_UPDATED, ret)
+  {{/kafka}}
   return ret
 }
 
@@ -130,6 +198,11 @@ async function {{nickname}} ({{caseReturnType}}Id, params, currentUser) {
     data[key] = value
   })
   const ret = await helper.update(obj, data)
+ {{#kafka}}
+  // post bus event
+  await helper.postBusEvent(config.KAFKA_TOPIC.{{upperSnakeReturnType}}_UPDATED,
+    _.assignIn({ id: {{caseReturnType}}Id }, params))
+ {{/kafka}}
   return ret
 }
 
@@ -161,8 +234,12 @@ async function {{nickname}} ({{caseReturnType}}Id, params, currentUser) {
  * @return {Promise} the deleted {{spaceReturnType}}
  **/
 async function {{nickname}} ({{caseReturnType}}Id) {
-  await get{{returnType}}({{caseReturnType}}Id)
+  const ret = await get{{returnType}}({{caseReturnType}}Id)
   await helper.delete(Table.{{baseName}}, {{caseReturnType}}Id)
+ {{#kafka}}
+  // post bus event
+  await helper.postBusEvent(config.KAFKA_TOPIC.{{upperSnakeReturnType}}_DELETE, ret)
+ {{/kafka}}
 }
 
 {{nickname}}.schema = {

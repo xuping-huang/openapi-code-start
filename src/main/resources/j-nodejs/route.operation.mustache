@@ -1,13 +1,26 @@
 /**
 * Contains all routes
 */
-
+// TODO FIRST: adjust routes
 const _ = require('lodash')
 const { Role } = require('./constants')
+const {
+  SCOPES: {
+    {{#models}}
+      {{#model}}
+        {{#vendorExtensions}}
+          {{#x-table-model}}
+    {{upperSnakeName}},
+          {{/x-table-model}}
+        {{/vendorExtensions}}
+      {{/model}}
+    {{/models}}
+  }
+} = require('config')
 {{#openAPI}}
 {{#swgdoc}}
 const swaggerJSDoc = require('swagger-jsdoc')
-
+// TODO FIRST: adjust routes
 /**
 * Swagger-jsdoc
 */
@@ -77,7 +90,7 @@ const routes = {
       auth: 'jwt',
       {{/userToken}}
       {{#m2mToken}}
-      scopes: ['{{> sub.httpMethod2ScopePrefix}}:{{classVarName}}', 'all:{{classVarName}}'],
+      scopes: [{{upperSnakeReturnType}}.{{> sub.httpMethod2ScopeSurfix}}, {{upperSnakeReturnType}}.ALL],
       {{/m2mToken}}
       roles: [Role.Admin, Role.Copilot]
     }

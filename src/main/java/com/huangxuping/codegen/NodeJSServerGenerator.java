@@ -24,7 +24,7 @@ import java.util.Map.Entry;
 public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeJSServerGenerator.class);
-    protected String implFolder = "service";
+    protected String implFolder = "services";
     public static final String SERVER_PORT = "serverPort";
 
     protected String apiVersion = "1.0.0";
@@ -34,6 +34,14 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
     public static final String DATABASE_TYPE = "db";
     public static final String M2M_TOKEN = "m2mToken";
     public static final String USER_TOKEN = "userToken";
+    public static final String KAFKA = "kafka";
+    public static final String ELASTIC_SEARCH = "elasticSearch";
+    public static final String NEED_AWS = "needAws";
+    public static final String NEED_S3 = "needS3";
+    public static final String NEED_TC_JWT = "needTcJwt";
+    public static final String NEED_HTTPS = "needHttps";
+    public static final String NEED_PAGINATION = "needPagination";
+    public static final String NEED_EMAIL = "needEmail";
     public static final String CREATED_BY = "createdBy";
     public static final String UPDATED_BY = "updatedBy";
     public static final String CREATED_AT = "createdAt";
@@ -76,9 +84,9 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         apiTestTemplateFiles.put(
                 "unit.service.mustache",   // the template to use
                 ".test.js");       // the extension for each file to write
-        apiTestTemplateFiles.put(
-                "joi.service.mustache",   // the template to use
-                ".test.js");       // the extension for each file to write
+//        apiTestTemplateFiles.put(
+//                "joi.service.mustache",   // the template to use
+//                ".test.js");       // the extension for each file to write
 
         /*
          * Template Location.  This is the location which templates will be read from.  The generator
@@ -105,7 +113,8 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         additionalProperties.put("apiVersion", apiVersion);
         additionalProperties.put("implFolder", implFolder);
 
-        supportingFiles.add(new SupportingFile("model.index.mustache", ("src/model").replace(".", File.separator), "index.js"));
+        supportingFiles.add(new SupportingFile("model.index.mustache", ("src/models").replace(".", File.separator), "index.js"));
+        supportingFiles.add(new SupportingFile("default.mustache", "./config", "default.js"));
         supportingFiles.add(new SupportingFile("route.operation.mustache", "./src", "routes.js"));
         supportingFiles.add(new SupportingFile("db.tools.mustache", "./scripts", "tools.js"));
         supportingFiles.add(new SupportingFile("assert.mustache", "./test/lib", "assert.js"));
@@ -122,8 +131,24 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
                 "database type."));
         cliOptions.add(new CliOption(M2M_TOKEN,
                 "whether need machine token"));
+        cliOptions.add(new CliOption(KAFKA,
+                "whether need kafka"));
+        cliOptions.add(new CliOption(ELASTIC_SEARCH,
+                "whether need elastic search"));
         cliOptions.add(new CliOption(USER_TOKEN,
                 "whether need user token"));
+        cliOptions.add(new CliOption(NEED_AWS,
+                "whether need aws sdk"));
+        cliOptions.add(new CliOption(NEED_S3,
+                "whether need s3"));
+        cliOptions.add(new CliOption(NEED_TC_JWT,
+                "whether need topcoder jwt"));
+        cliOptions.add(new CliOption(NEED_HTTPS,
+                "whether need https"));
+        cliOptions.add(new CliOption(NEED_PAGINATION,
+                "whether need pagination"));
+        cliOptions.add(new CliOption(NEED_EMAIL,
+                "whether need email"));
         cliOptions.add(new CliOption(CREATED_BY,
                 "createdBy field name"));
         cliOptions.add(new CliOption(UPDATED_BY,
@@ -138,7 +163,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
 
     @Override
     public String apiPackage() {
-        return "src/controller";
+        return "src/controllers";
     }
 
     /**
@@ -198,7 +223,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         String result = super.apiFilename(templateName, tag);
 
         if (templateName.equals("service.operation.mustache")) {
-            String stringToMatch = "controller" + File.separator;
+            String stringToMatch = "controllers" + File.separator;
             String replacement =  implFolder + File.separator;
             result = result.replace(stringToMatch, replacement).replace("api.","service.");
         }
@@ -304,7 +329,7 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
     }
     @Override
     public String modelPackage() {
-        return "src/model";
+        return "src/models";
     }
 
     private void analyzeOperationTest(CodegenOperation operation) {
@@ -318,14 +343,43 @@ public class NodeJSServerGenerator extends DefaultCodegen implements CodegenConf
         Map<String, Object> objectMap = (Map<String, Object>) objs.get("operations");
         @SuppressWarnings("unchecked")
         List<CodegenOperation> operations = (List<CodegenOperation>) objectMap.get("operation");
+        List<String> upperSnakes = new ArrayList<>();
+        List<String> lowerSnakes = new ArrayList<>();
+        for (Object modelObject : allModels) {
+            Map<String, Object> models = (Map<String, Object>) modelObject;
+            CodegenModel model = (CodegenModel)models.get("model");
+            String snakeName = StringUtils.replace(model.classFilename, "-", "_");
+            String upperSnakeName = StringUtils.upperCase(snakeName);
+            String lowerSnakeName = StringUtils.lowerCase(snakeName);
+            model.vendorExtensions.put("upperSnakeName", upperSnakeName);
+            model.vendorExtensions.put("lowerSnakeName", lowerSnakeName);
+            upperSnakes.add(upperSnakeName);
+            lowerSnakes.add(lowerSnakeName);
+        }
         for (CodegenOperation operation : operations) {
             operation.httpMethod = operation.httpMethod.toLowerCase(Locale.ROOT);
             generatorUtil.handleOperation(operation);
             generatorUtil.handleOperationWithModels(operation, allModels);
             analyzeOperationTest(operation);
             operation.vendorExtensions.put("caseReturnType", StringUtils.uncapitalize(operation.baseName));
+            operation.vendorExtensions.put("upperReturnType", StringUtils.upperCase(operation.baseName));
             String[] strs = StringUtils.splitByCharacterTypeCamelCase(operation.baseName);
             operation.vendorExtensions.put("spaceReturnType", StringUtils.lowerCase(StringUtils.join(strs, ' ')));
+            String upperSnakeReturnType = StringUtils.upperCase(StringUtils.join(strs, '_'));
+            String lowerSnakeReturnType = StringUtils.lowerCase(StringUtils.join(strs, '_'));
+
+            for(int index = 0; index < upperSnakes.size(); index++ ) {
+                String upperSnake = upperSnakes.get(index);
+                if (upperSnake.startsWith(upperSnakeReturnType)
+                || upperSnakeReturnType.startsWith(upperSnake)) {
+                    if (Math.abs(upperSnake.length() - upperSnakeReturnType.length()) <= 1) {
+                        upperSnakeReturnType = upperSnake;
+                        lowerSnakeReturnType = lowerSnakes.get(index);
+                    }
+                }
+            }
+            operation.vendorExtensions.put("upperSnakeReturnType", upperSnakeReturnType);
+            operation.vendorExtensions.put("lowerSnakeReturnType", lowerSnakeReturnType);
         }
         return objs;
     }

@@ -2,6 +2,7 @@
 * Unit test of the {{baseName}}.
 */
 const _ = require('lodash')
+const config = require('config')
 const should = require('chai').should()
 const moment = require('moment')
 const httpStatus = require('http-status')
@@ -9,89 +10,142 @@ const jom = require('../lib/jom')
 const td = require('../lib/testData')
 const th = require('../lib/testHelper')
 const assert = require('../lib/assert')
-const {{classname}}Service = require('../../src/service/service.{{classname}}')
+// TODO: change if need
+const {{classname}}Service = require('../../src/services/service.{{classname}}')
+const es = require('../../src/scripts/esload-helper')
 
-const CURRENT_USER = td.Token.Copilot
-const M2M_USER = { sub: td.M2M_CONFIG.SUB }
-let RECORDS = [];
+const ADMIN_USER = td.Token.Admin
+const COPILOT_USER = td.Token.Copilot
+const SUBMIT_USER = td.Token.User
+const M2M_USER = td.Token.M2M_USER
+const beforeTest = moment()
+let RECORDS = []
+const newIds = []
+// TODO TEST FIRST: adjust variable
+const {{baseName}}_A_ID = undefined
+const ES_TYPE = config.ES.ES_TYPE
+const ES_INDEX = config.ES.INDEXES.ES_{{baseName}}_INDEX
 
 module.exports = describe('{{baseName}} resource', () => {
   before(async () => {
-    RECORDS = await th.load{{baseName}}Data()
+    // TODO UNIT
+    RECORDS = await th.loadData('{{baseName}}')
   });
+  const sleep = (time) => new Promise((resolve) => {
+    setTimeout(resolve, time)
+  })
+  // TODO: remove if not need elastic search
+{{#operations}}
+  {{#operation}}
+    {{#vendorExtensions}}
+      {{#x-post-method}}
+  const {{baseName}}IndexCreate = async (record) => {
+    await es.createModelIndex(ES_INDEX, ES_TYPE, record)
+    await sleep(config.WAIT_TIME)
+  }
+      {{/x-post-method}}
+      {{#x-put-method}}
+  const {{baseName}}IndexUpdate = async (record) => {
+    await es.updateModelIndex(ES_INDEX, ES_TYPE, record)
+    await sleep(config.WAIT_TIME)
+  }
+      {{/x-put-method}}
+      {{#x-delete-method}}
+  const {{baseName}}IndexDelete = async (id) => {
+    await es.removeModelIndex(ES_INDEX, ES_TYPE, id)
+    await sleep(config.WAIT_TIME)
+  }
+      {{/x-delete-method}}
+    {{/vendorExtensions}}
+  {{/operation}}
+{{/operations}}
+  // TODO: change operations to right methods
+{{#operations}}
+  {{#operation}}
+    {{#vendorExtensions}}
+      {{^x-head-method}}
+      {{#x-post-method}}
+  const createOperation = async (body, user) => {
+    const result = await {{classname}}Service.create{{caseReturnType}}(body, user)
+    return result
+  }
+      {{/x-post-method}}
+      {{#x-get-method}}
+        {{#isListContainer}}
+  const searchOperation = async (body, _user) => {
+    const result = await {{classname}}Service.search{{caseReturnType}}(body)
+    return result
+  }
+        {{/isListContainer}}
+        {{^isListContainer}}
+  const getOperation = async (id, _user) => {
+    const result = await {{classname}}Service.get{{caseReturnType}}(id)
+    return result
+  }
+        {{/isListContainer}}
+      {{/x-get-method}}
+      {{#x-put-method}}
+  const updateOperation = async (id, body, user) => {
+    const result = await {{classname}}Service.update{{caseReturnType}}(id, body, user)
+    return result
+  }
+      {{/x-put-method}}
+      {{#x-patch-method}}
+  const partiallyUpdateOperation = async (id, body, user) => {
+    const result = await {{classname}}Service.partiallyUpdate{{caseReturnType}}(id, body, user)
+    return result
+  }
+      {{/x-patch-method}}
+      {{#x-delete-method}}
+  const deleteOperation = async (id, _user) => {
+    const result = await {{classname}}Service.remove{{caseReturnType}}(id)
+    return result
+  }
+      {{/x-delete-method}}
+      {{/x-head-method}}
+    {{/vendorExtensions}}
+  {{/operation}}
+{{/operations}}
+
 {{#operations}}
 {{#operation}}
   {{#vendorExtensions}}
     {{^x-head-method}}
   xdescribe('{{operationId}} endpoint', () => {
   {{#x-post-method}}
-    // TODO: change body properties content
-    const Payload = {
-      body: {
-    {{#bodyParams}}
-      {{#isModel}}
-        {{#vendorExtensions}}
-          {{#x-refModel}}
-            {{#vars}}
-        {{baseName}}: '',
-            {{/vars}}
-          {{/x-refModel}}
-        {{/vendorExtensions}}
-      {{/isModel}}
-      {{^isModel}}
-        {{baseName}}: '',
-      {{/isModel}}
-    {{/bodyParams}}
-      }
-    };
+    // TODO UNIT
+    const body = 'Should copy from e2e'
   {{/x-post-method}}
   {{#x-put-method}}
-    const Payload = {
-      id: td.{{baseName}}.ForUpdate.id,
-      // TODO: change body properties value
-      body: {
-      {{#bodyParams}}
-        {{#isModel}}
-          {{#vendorExtensions}}
-            {{#x-refModel}}
-              {{#vars}}
-        {{baseName}}: '',
-              {{/vars}}
-            {{/x-refModel}}
-          {{/vendorExtensions}}
-        {{/isModel}}
-        {{^isModel}}
-      {{baseName}}: '',
-        {{/isModel}}
-      {{/bodyParams}}
-      }
-    };
+    // TODO UNIT:
+    const id = {{baseName}}_A_ID
+    const body = 'Should copy from e2e'
   {{/x-put-method}}
   {{#x-patch-method}}
-    const Payload = {
-    id: td.{{baseName}}.ForPatch.id,
-    body: {
-    {{#bodyParams}}
-      {{#isModel}}
-        {{#vendorExtensions}}
-          {{#x-refModel}}
-            {{#vars}}
-      {{baseName}}: '',
-            {{/vars}}
-          {{/x-refModel}}
-        {{/vendorExtensions}}
-      {{/isModel}}
-      {{^isModel}}
-      {{baseName}}: '',
-      {{/isModel}}
-    {{/bodyParams}}
-    }
-    };
+    // TODO UNIT
+    const id = {{baseName}}_A_ID
+    const body = 'Should copy from e2e'
   {{/x-patch-method}}
     describe('success request', () => {
     {{#x-get-method}}
       {{#isListContainer}}
-      // TODO: add more test value
+      const assertSearch = async (criteria, filters) => {
+        const record = await searchOperation(criteria)
+        if (criteria.page) {
+          should.equal(record.length || record.result.length, criteria.perPage)
+          if (record.total) {
+            should.equal(record.total, filters.length)
+          }
+        } else {
+          if (filters.length === 0) {
+            should.equal(0, record.length || record.result.length)
+          } else {
+            await assert.{{caseReturnType}}SearchBody(record.result || record, filters)
+          }
+        }
+      }
+      // TODO UNIT:
+      // test different search conditions
       const includesQuery = {
       {{#queryParams}}
         {{#isString}}
@@ -102,153 +156,166 @@ module.exports = describe('{{baseName}} resource', () => {
       _.each(includesQuery, (values, key) => {
         _.each(values, value => {
           xit(`200 - ${key}: should success when use '${String(value)}'`, async () => {
-            const record = await {{classname}}Service.{{operationId}}({ [key]: value })
-            // TODO: if not case insensitive search, you need remove toLowerCase()
-            const items = RECORDS.filter(item => item[key].toLowerCase().includes(String(value).toLowerCase()))
-            await assert.{{caseReturnType}}SearchBody(record, items)
+            const filters = RECORDS.filter(item =>
+              String(item[key]).toLowerCase().includes(String(value).toLowerCase()))
+            await assertSearch({ [key]: value }, filters)
           })
         })
       })
-      // TODO: add more test value
       const equalQuery = {
       {{#queryParams}}
         {{^isString}}
-          {{baseName}}: [],
+        {{baseName}}: [],
         {{/isString}}
       {{/queryParams}}
       }
       _.each(equalQuery, (values, key) => {
         _.each(values, value => {
           xit(`200 - ${key}: should success when use '${String(value)}'`, async () => {
-            const record = await {{classname}}Service.{{operationId}}({ [key]: value })
             const filters = RECORDS.filter(item => item[key] === value)
-            await assert.{{caseReturnType}}SearchBody(record, filters)
+            await assertSearch({ [key]: value }, filters)
           })
         })
       })
       xit('200 - should success when no condition', async () => {
-        const record = await {{classname}}Service.{{operationId}}({})
-        await assert.{{caseReturnType}}SearchBody(record, RECORDS)
+        await assertSearch({}, RECORDS)
       })
-      xit('200 - should success when all condition', async () => {
-        // TODO: add more test value
-        const body = {
-      {{#queryParams}}
-          {{baseName}}: '',
-      {{/queryParams}}
+      xit('200 - should success when pagination', async () => {
+        const criteria = {
+          page: 2,
+          perPage: 2,
+          name: 'la'
         }
-        const record = await {{classname}}Service.{{operationId}}(body)
-        const filters = RECORDS.filter(item => {
-          // TODO: change filter rule
-          return true
-        })
-        await assert.{{caseReturnType}}SearchBody(record, filters)
+        const filters = RECORDS.filter(item =>
+          String(item['name']).toLowerCase().includes(String('la').toLowerCase()))
+        await assertSearch(criteria, filters)
       })
       {{/isListContainer}}
       {{^isListContainer}}
       xit('200 - should success when find by id', async () => {
-        const id = td.{{baseName}}.ForGet.id
-        const record = await {{classname}}Service.{{operationId}}(id)
+        const id = newIds[0]
+        const record = await getOperation(id, ADMIN_USER)
         const obj = RECORDS.find(item => item.id === id)
         await assert.{{caseReturnType}}GetBody(record, obj)
       })
       {{/isListContainer}}
     {{/x-get-method}}
     {{#x-post-method}}
-      const params = [
-        {
-          title: 'body',
-          body: Payload.body,
-          oldCount: 0,
-          user: CURRENT_USER,
-          userId: CURRENT_USER.handle
-        },
-        // TODO: remove if do not need m2m
-        {
-          title: 'm2m',
-          body: _.assign({}, Payload.body, { name: 'M2M' }),
-          oldCount: 0,
-          user: M2M_USER,
-          userId: M2M_USER.sub
-        }
-      ]
       const assertCreate = async (param) => {
-        const oldObj = await {{classname}}Service.search{{baseName}}(param.body)
-        should.equal(param.oldCount, oldObj.length)
-        const before = moment()
-        const record = await {{classname}}Service.{{operationId}}(param.body, param.user)
-        const newObj = await {{classname}}Service.get{{baseName}}(record.id)
-        should.equal(true, moment(record.createdAt).isSameOrAfter(before))
+        // TODO: change search condition if need
+        const oldObj = await searchOperation({ name: param.body.name }, param.user)
+        should.equal(param.oldCount, oldObj.result.length)
+        const record = await createOperation(param.body, param.user)
+        // TODO: remove if not need elastic search
+        await {{baseName}}IndexCreate(record)
+        const newObj = await getOperation(record.id, param.user)
+        should.equal(true, moment(record.createdAt).isSameOrAfter(beforeTest))
         await assert.{{caseReturnType}}CreateBody(record, newObj, param.userId)
-        // TODO: modify assign body
-        const assignedBody = _.assign({}, param.body, param.assignBody ? param.assignBody : {})
-        await assert.{{caseReturnType}}CreateBody(record, assignedBody)
+        await assert.{{caseReturnType}}CreateBody(record, param.body)
+        RECORDS.push(record)
+        newIds.push(record.id)
       }
+      // TODO UNIT:
+      const bodies = [
+        _.assign({}, body, { name: body.name + ` admin test` }),
+        _.assign({}, body, { name: body.name + ` copilot test` }),
+        _.assign({}, body, { name: body.name + ` m2m test` }),
+        _.assign({}, body, { name: body.name + ` more test` })
+      ]
+      const users = [
+        COPILOT_USER,
+        ADMIN_USER,
+        M2M_USER,
+        ..._.fill(new Array(bodies.length - 3), COPILOT_USER)
+      ]
+      const params = th.matchParamsFromBodies(bodies, users)
+      // execute tests
       _.each(params, param => {
-        xit(`201 - should success when create with ${param.title}`, async () => {
+        it(`201 - should success when create with ${param.title}`, async () => {
           await assertCreate(param)
         })
       })
     {{/x-post-method}}
     {{#x-delete-method}}
-      xit('204 - should success when delete by id', async () => {
-        const id = td.{{baseName}}.ForDelete.id
-        const oldObj = await {{classname}}Service.get{{baseName}}(id)
+      const assertDelete = async (aId, user) => {
+        const oldObj = await getOperation(aId, ADMIN_USER)
         should.exist(oldObj)
-        await {{classname}}Service.{{operationId}}(id)
+        await deleteOperation(aId, user)
         try {
-          await {{classname}}Service.get{{baseName}}(id)
+          await getOperation(aId, ADMIN_USER)
         } catch (err) {
-          should.equal(err.message, `{{caseReturnType}}s with id: ${id} does not exist`)
+          should.equal(err.message, `{{caseReturnType}} with id: ${aId} does not exist`)
           should.equal(err.httpStatus, httpStatus.NOT_FOUND)
         }
+      }
+      // TODO UNIT
+      _.each(RECORDS, record => {
+        it('204 - should success when delete by id', async () => {
+          await assertDelete(record.id, ADMIN_USER)
+        })
       })
     {{/x-delete-method}}
     {{#x-put-method}}
-      const { id, body } = Payload
-        xit('200 - should success when update by id', async () => {
-          const oldObj = await {{classname}}Service.get{{baseName}}(id)
-          const record = await {{classname}}Service.{{operationId}}(id, body, CURRENT_USER)
-          const newObj = await {{classname}}Service.get{{baseName}}(id)
-      {{#bodyParams}}
-        {{#isModel}}
-          {{#vendorExtensions}}
-            {{#x-refModel}}
-              {{#vars}}
-          should.not.equal(oldObj.{{baseName}}, newObj.{{baseName}})
-              {{/vars}}
-            {{/x-refModel}}
-          {{/vendorExtensions}}
-        {{/isModel}}
-        {{^isModel}}
-          should.not.equal(oldObj.{{baseName}}, newObj.{{baseName}})
-        {{/isModel}}
-      {{/bodyParams}}
-          await assert.{{caseReturnType}}UpdateBody(record, newObj, CURRENT_USER.handle)
-          await assert.{{caseReturnType}}UpdateBody(record, body)
+      const assertUpdate = async (aId, aBody, user) => {
+        const oldObj = await getOperation(aId, ADMIN_USER)
+        const record = await updateOperation(aId, aBody, user)
+        // TODO: remove if not need elastic search
+        await {{baseName}}IndexUpdate(record)
+        const newObj = await getOperation(aId, ADMIN_USER)
+        should.not.equal(JSON.stringify(oldObj), JSON.stringify(aBody))
+        await assert.{{caseReturnType}}UpdateBody(record, newObj)
+        await assert.{{caseReturnType}}UpdateBody(record, aBody)
+      }
+      // TODO UNIT
+      const bodies = [
+        {
+          name: 'fully changed'
+        },
+        body
+      ]
+      const ids = [
+        ..._.fill(new Array(bodies.length), id)
+      ]
+      const users = [
+        ..._.fill(new Array(bodies.length), ADMIN_USER)
+      ]
+      _.each(bodies, (aBody, index) => {
+        it(`200 - should success when update with '${JSON.stringify(aBody.body)}'`, async () => {
+          await assertUpdate(ids[index], aBody, users[index])
         })
-        // TODO: remove if do not need m2m
-        xit('200 - should success when update no change (m2m)', async () => {
-          const oldObj = await {{classname}}Service.get{{baseName}}(id)
-          const record = await {{classname}}Service.{{operationId}}(id, body, M2M_USER)
-          const newObj = await {{classname}}Service.get{{baseName}}(id)
-          await assert.{{caseReturnType}}UpdateBody(record, oldObj)
-          await assert.{{caseReturnType}}UpdateBody(record, newObj, M2M_USER.sub)
-          await assert.{{caseReturnType}}UpdateBody(record, body)
       })
     {{/x-put-method}}
     {{#x-patch-method}}
-      const { id, body } = Payload
-      const params = [
+      const assertPartiallyUpdate = async (aId, aBody, user) => {
+        const oldObj = await getOperation(aId, ADMIN_USER)
+        const record = await partiallyUpdateOperation(aId, aBody, user)
+        // TODO: remove if not need elastic search
+        await {{baseName}}IndexUpdate(record)
+        const newObj = await getOperation(aId, ADMIN_USER)
+        _.each(aBody, (value, key) => {
+          if (_.isArray(value)) {
+            if (body !== aBody) {
+              should.not.equal(JSON.stringify(oldObj[key], JSON.stringify(value)))
+            }
+            should.equal(JSON.stringify(newObj[key]), JSON.stringify(value))
+          } else {
+            if (body !== aBody) {
+              should.not.equal(oldObj[key], newObj[key])
+            }
+            should.equal(newObj[key], value)
+          }
+        })
+        await assert.{{caseReturnType}}UpdateBody(record, newObj)
+        await assert.{{caseReturnType}}UpdateBody(record, aBody)
+      }
+      const bodies = [
       {{#bodyParams}}
         {{#isModel}}
           {{#vendorExtensions}}
             {{#x-refModel}}
               {{#vars}}
         {
-          body: { {{baseName}}: body.{{baseName}} + '-partially update' },
-          user: CURRENT_USER,
-          userId: CURRENT_USER.handle
+          {{baseName}}: body.{{baseName}} + '-partially update'
         },
               {{/vars}}
             {{/x-refModel}}
@@ -256,30 +323,18 @@ module.exports = describe('{{baseName}} resource', () => {
         {{/isModel}}
         {{^isModel}}
         {
-          body: { {{baseName}}: body.{{baseName}} + '-partially update' },
-          user: CURRENT_USER,
-          userId: CURRENT_USER.handle
+          {{baseName}}: body.{{baseName}} + '-partially update'
         },
         {{/isModel}}
       {{/bodyParams}}
-        // TODO: remove if do not need m2m
-        {
-          body,
-          user: M2M_USER,
-          userId: M2M_USER.sub
-        }
+        body
       ]
-      _.each(params, param => {
-        xit(`200 - should success when update with '${JSON.stringify(param.body)}'`, async () => {
-          const oldObj = await {{classname}}Service.get{{baseName}}(id)
-          const record = await {{classname}}Service.{{operationId}}(id, param.body, param.user)
-          const newObj = await {{classname}}Service.get{{baseName}}(id)
-          _.each(param.body, (value, key) => {
-            should.not.equal(oldObj[key], newObj[key])
-            should.equal(newObj[key], value)
-          })
-          await assert.{{caseReturnType}}PartialUpdateBody(record, newObj, param.userId)
-          await assert.{{caseReturnType}}PartialUpdateBody(record, _.assign({}, oldObj, param.body))
+      const ids = [
+        ..._.fill(new Array(bodies.length), id)
+      ]
+      _.each(bodies, (aBody, index) => {
+        it(`200 - should success when update with ${JSON.stringify(aBody)}`, async () => {
+          await assertPartiallyUpdate(ids[index], aBody, ADMIN_USER)
         })
       })
     {{/x-patch-method}}
@@ -293,185 +348,235 @@ module.exports = describe('{{baseName}} resource', () => {
 
     xdescribe('fail request', () => {
       {{#x-post-method}}
-      const {
+      const param = {
+        user: ADMIN_USER,
         body
-      } = Payload
+      }
       const requests = []
+      // TODO UNIT
+      // test invalid param
       requests.push(...th.genStringTests(
-        // TODO: modify properties
         ['name'],
         td.STRING_INVALIDS,
-        {
-          body,
-          isUnitTest: true
-        }
+        param
       ))
-      requests.push(...th.genBooleanTests(
-        // TODO: modify properties
-        [],
-        td.BOOLEAN_INVALIDS,
+      requests.push(...[
         {
-          body,
-          isUnitTest: true
+          title: '400 - should fail when invalid params',
+          params: [_.assign({}, body, { invalid: 'invalid' }), ADMIN_USER],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.notAllow('invalid').message
         }
-      ))
+      ])
+      // execute tests
+      _.each(requests, request => {
+        request.operation = createOperation
+        th.failItService(request)
+      })
       {{/x-post-method}}
       {{#x-delete-method}}
-      const requests = [
+      const requests = []
+      // TODO UNIT
+      requests.push(...[
         {
           title: '400 - {{caseReturnType}}Id: should fail when not string',
-          params: [123],
+          params: [123, ADMIN_USER],
           status: httpStatus.BAD_REQUEST,
           message: jom.mustString('{{caseReturnType}}Id').message
         },
         {
           title: '400 - {{caseReturnType}}Id: should fail when not guid',
-          params: ['abc'],
+          params: ['abc', ADMIN_USER],
           status: httpStatus.BAD_REQUEST,
           message: jom.mustGuid('{{caseReturnType}}Id').message
         },
         {
           title: '404 - {{caseReturnType}}Id: should fail when not exist',
-          params: [td.NO_EXIST_ID],
+          params: [td.NO_EXIST_ID, ADMIN_USER],
           status: httpStatus.NOT_FOUND,
           message: td.ErrorMessage.{{baseName}}_Not_Exist
         }
-      ]
+      ])
       {{/x-delete-method}}
       {{#x-get-method}}
         {{#isListContainer}}
+      const param = {
+        user: ADMIN_USER,
+        body: {},
+        isSearch: true
+      }
       const requests = []
+      // TODO UNIT
+      // test invalid params
       requests.push(...th.genStringTests(
         [{{#queryParams}}{{#isString}}'{{baseName}}', {{/isString}}{{/queryParams}}],
         td.STRING_INVALIDS.filter(item => !_.isUndefined(item)),
-        {
-          isSearch: true,
-          isUnitTest: true
-        }
+        param
       ))
       requests.push(...th.genBooleanTests(
         [{{#queryParams}}{{#isBoolean}}'{{baseName}}', {{/isBoolean}}{{/queryParams}}],
         td.BOOLEAN_INVALIDS,
-        {
-          isSearch: true,
-          isUnitTest: true
-        }
+        param
       ))
+      requests.push(...th.genGuidTests(
+        ['id', 'typeId', 'timelineTemplateId'],
+        ['', 'abc'],
+        param
+      ))
+      requests.push(...th.genNumberTests(
+        ['page'],
+        td.PAGE_INVALIDS,
+        _.assign({}, param, {
+          min: 1,
+          needInteger: true
+        })
+      ))
+      requests.push(...th.genNumberTests(
+        ['perPage'],
+        td.PERPAGE_INVALIDS,
+        _.assign({}, param, {
+          min: 1,
+          max: 100,
+          needInteger: true
+        })
+      ))
+      requests.push(...th.genDateTests(
+        ['createdDateStart'],
+        td.DATE_INVALIDS.filter(value => !_.isUndefined(value)),
+        param
+      ))
+      requests.push(...[
+        {
+          title: '400 - should fail when invalid params',
+          params: [{ invalid: 'invalid' }, ADMIN_USER],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.notAllow('invalid').message
+        }
+      ])
+      // execute tests
+      _.each(requests, request => {
+        request.operation = searchOperation
+        th.failItService(request)
+      })
         {{/isListContainer}}
         {{^isListContainer}}
       const requests = [
         {
           title: '400 - {{caseReturnType}}Id: should fail when not string',
-          params: [123],
+          params: [123, ADMIN_USER],
           status: httpStatus.BAD_REQUEST,
           message: jom.mustString('{{caseReturnType}}Id').message
         },
         {
           title: '400 - {{caseReturnType}}Id: should fail when not guid',
-          params: ['abc'],
+          params: ['abc', ADMIN_USER],
           status: httpStatus.BAD_REQUEST,
           message: jom.mustGuid('{{caseReturnType}}Id').message
         },
         {
           title: '404 - {{caseReturnType}}Id: should fail when not exist',
-          params: [td.NO_EXIST_ID],
+          params: [td.NO_EXIST_ID, ADMIN_USER],
           status: httpStatus.NOT_FOUND,
           message: td.ErrorMessage.{{baseName}}_Not_Exist
         }
       ]
+      // execute tests
+      _.each(requests, request => {
+        request.operation = getOperation
+        th.failItService(request)
+      })
         {{/isListContainer}}
       {{/x-get-method}}
       {{#x-put-method}}
-      const { id, body } = Payload
+      const param = {
+        id,
+        body
+      }
       const requests = []
+      // TODO UNIT
       requests.push(...th.genStringTests(
-        // TODO: modify properties
         ['name'],
         td.STRING_INVALIDS,
-        {
-          id,
-          body,
-          isUnitTest: true
-        }
+        param
       ))
-      requests.push(...th.genBooleanTests(
-        // TODO: modify properties
-        [],
-        td.BOOLEAN_INVALIDS,
+
+      requests.push(...[
         {
-          id,
-          body,
-          isUnitTest: true
-        }
-      ))
-      requests.push(...[{
-        title: '400 - {{caseReturnType}}Id: should fail when not string',
-        params: [123, body],
-        status: httpStatus.BAD_REQUEST,
-        message: jom.mustString('{{caseReturnType}}Id').message
-      }, {
-        title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
-        params: ['abc', body],
-        status: httpStatus.BAD_REQUEST,
-        message: jom.mustGuid('{{caseReturnType}}Id').message
-      },
-      {
-        title: '404 - {{caseReturnType}}Id: should fail when id not exist',
-        params: [td.NO_EXIST_ID, body],
-        status: httpStatus.NOT_FOUND,
-        message: td.ErrorMessage.{{baseName}}_Not_Exist
-      }])
-      {{/x-put-method}}
-      {{#x-patch-method}}
-        const { id, body } = Payload
-        const requests = []
-        requests.push(...th.genStringTests(
-          // TODO: modify properties
-          ['name'],
-          td.STRING_INVALIDS,
-          {
-            id,
-            body: {},
-            isUnitTest: true
-          }
-          ))
-          requests.push(...th.genBooleanTests(
-          // TODO: modify properties
-          [],
-          td.BOOLEAN_INVALIDS,
-          {
-            id,
-            body: {},
-            isUnitTest: true
-          }
-        ))
-        requests.push(...[{
+          title: '400 - should fail when invalid params',
+          params: [id, _.assign({}, body, { invalid: 'invalid' }), ADMIN_USER],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.notAllow('invalid').message
+        },
+        {
           title: '400 - {{caseReturnType}}Id: should fail when not string',
-          params: [123, body],
+          params: [123, body, ADMIN_USER],
           status: httpStatus.BAD_REQUEST,
           message: jom.mustString('{{caseReturnType}}Id').message
         }, {
-        title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
-          params: ['abc', body],
+          title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
+          params: ['abc', body, ADMIN_USER],
           status: httpStatus.BAD_REQUEST,
           message: jom.mustGuid('{{caseReturnType}}Id').message
         },
         {
-        title: '404 - {{caseReturnType}}Id: should fail when id not exist',
-          params: [td.NO_EXIST_ID, body],
+          title: '404 - {{caseReturnType}}Id: should fail when id not exist',
+          params: [td.NO_EXIST_ID, body, ADMIN_USER],
           status: httpStatus.NOT_FOUND,
           message: td.ErrorMessage.{{baseName}}_Not_Exist
-        }])
-      {{/x-patch-method}}
-        {{#x-valid-methods}}
-          {{#isFailValidate}}
-      // title: '{{title}}'
-          {{/isFailValidate}}
-        {{/x-valid-methods}}
+        }
+      ])
+      // execute tests
       _.each(requests, request => {
-        request.operation = {{classname}}Service.{{operationId}}
-        th.failItService(request);
-      });
+        request.operation = updateOperation
+        th.failItService(request)
+      })
+      {{/x-put-method}}
+      {{#x-patch-method}}
+        const param = { id, body, user: ADMIN_USER }
+        const requests = []
+        // TODO UNIT
+        // test invalid params
+        requests.push(...th.genStringTests(
+          ['name'],
+          td.STRING_INVALIDS,
+          param
+        ))
+        requests.push(...[
+          {
+            title: '400 - should fail when invalid params',
+            params: [id, _.assign({}, body, { invalid: 'invalid' }), ADMIN_USER],
+            status: httpStatus.BAD_REQUEST,
+            message: jom.notAllow('invalid').message
+          },
+          {
+            title: '400 - {{caseReturnType}}Id: should fail when not string',
+            params: [123, body, ADMIN_USER],
+            status: httpStatus.BAD_REQUEST,
+            message: jom.mustString('{{caseReturnType}}Id').message
+          }, {
+            title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
+            params: ['abc', body, ADMIN_USER],
+            status: httpStatus.BAD_REQUEST,
+            message: jom.mustGuid('{{caseReturnType}}Id').message
+          },
+          {
+          title: '404 - {{caseReturnType}}Id: should fail when id not exist',
+            params: [td.NO_EXIST_ID, body, ADMIN_USER],
+            status: httpStatus.NOT_FOUND,
+            message: td.ErrorMessage.{{baseName}}_Not_Exist
+          }
+        ])
+        // execute tests
+        _.each(requests, request => {
+          request.operation = partiallyUpdateOperation
+          th.failItService(request)
+        })
+      {{/x-patch-method}}
+  {{#x-valid-methods}}
+    {{#isFailValidate}}
+      // title: '{{title}}'
+    {{/isFailValidate}}
+  {{/x-valid-methods}}
     });
   })
     {{/x-head-method}}

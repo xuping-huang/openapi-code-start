@@ -2,6 +2,7 @@
 * E2E test of the {{baseName}}.
 */
 const _ = require('lodash')
+const config = require('config')
 const should = require('chai').should()
 const moment = require('moment')
 const httpStatus = require('http-status')
@@ -10,17 +11,50 @@ const td = require('../lib/testData')
 const th = require('../lib/testHelper')
 const tc = require('../lib/testConstants')
 const assert = require('../lib/assert')
+const es = require('../../scripts/esload-helper')
 
 const ADMIN_USER = td.Token.Admin
 const COPILOT_USER = td.Token.Copilot
-const USERS = [ADMIN_USER, COPILOT_USER, td.Token.M2M]
-const M2M_TOKEN_SUB = td.Token.M2M.sub
+const COPILOT_USER2 = td.Token.Copilot2
+const SUBMIT_USER = td.Token.User
+const M2M_USER = td.Token.M2M
+const beforeTest = moment()
 let RECORDS = []
+const newIds = []
+const {{baseName}}_A_ID = undefined
 
 module.exports = describe('{{baseName}} resource', () => {
   before(async () => {
-    RECORDS = await th.load{{baseName}}Data()
+    // TODO: change real name
+    RECORDS = await th.loadData('{{baseName}}')
   })
+  const sleep = (time) => new Promise((resolve) => {
+    setTimeout(resolve, time)
+  })
+{{#operations}}
+  {{#operation}}
+    {{#vendorExtensions}}
+      {{#x-post-method}}
+  const {{baseName}}IndexCreate = async (record) => {
+    await es.createModelIndex(ES_INDEX, ES_TYPE, record)
+    await sleep(config.WAIT_TIME)
+  }
+      {{/x-post-method}}
+      {{#x-put-method}}
+  const {{baseName}}IndexUpdate = async (record) => {
+    await es.updateModelIndex(ES_INDEX, ES_TYPE, record)
+    await sleep(config.WAIT_TIME)
+  }
+      {{/x-put-method}}
+      {{#x-delete-method}}
+  const {{baseName}}IndexDelete = async (id) => {
+    await es.removeModelIndex(ES_INDEX, ES_TYPE, id)
+    await sleep(config.WAIT_TIME)
+  }
+      {{/x-delete-method}}
+    {{/vendorExtensions}}
+  {{/operation}}
+{{/operations}}
   const formatCreateUrl = () => `${td.BaseUrl}/{{operations.pathPrefix}}s`
   const formatSearchUrl = (body) => {
   const query = th.buildQueryParams(body)
@@ -36,81 +70,137 @@ module.exports = describe('{{baseName}} resource', () => {
     {{#vendorExtensions}}
   xdescribe('{{operationId}} endpoint', () => {
         {{#x-post-method}}
-    const before = moment()
-    const Payload = {
-      body: {
+    // TODO: change variable to right value
+    const URL = formatCreateUrl()
+    const createToken = td.M2M_TOKEN.{{upperReturnType}}_CREATE
+    const outScopeToken = td.M2M_TOKEN.OTHER_CREATE
+    // TODO UNIT: copy body to unit
+    const body = {
     {{#bodyParams}}
       {{#isModel}}
         {{#vendorExtensions}}
           {{#x-refModel}}
             {{#vars}}
-        {{baseName}}: '',
+      {{baseName}}: '',
             {{/vars}}
           {{/x-refModel}}
         {{/vendorExtensions}}
       {{/isModel}}
       {{^isModel}}
-        {{baseName}}: '',
+      {{baseName}}: '',
       {{/isModel}}
     {{/bodyParams}}
-      }
     }
         {{/x-post-method}}
+        {{#x-get-method}}
+          {{#isListContainer}}
+    // TODO: change variable to right value
+    const URL = formatSearchUrl()
+    const readToken = td.M2M_TOKEN.{{upperReturnType}}_READ
+    const outScopeToken = td.M2M_TOKEN.OTHER_READ
+          {{/isListContainer}}
+          {{^isListContainer}}
+    // TODO: change variable to right value
+    const id = {{baseName}}_A_ID
+    const URL = formatGetUrl(id)
+    const readToken = td.M2M_TOKEN.{{upperReturnType}}_READ
+    const outScopeToken = td.M2M_TOKEN.OTHER_READ
+          {{/isListContainer}}
+        {{/x-get-method}}
+        {{#x-head-method}}
+          {{#hasQueryParams}}
+    // TODO: change variable to right value
+    const URL = formatSearchUrl()
+    const readToken = td.M2M_TOKEN.{{upperReturnType}}_READ
+    const outScopeToken = td.M2M_TOKEN.OTHER_READ
+          {{/hasQueryParams}}
+          {{^hasQueryParams}}
+    // TODO: change variable to right value
+    const id = {{baseName}}_A_ID
+    const URL = formatGetUrl(id)
+    const readToken = td.M2M_TOKEN.{{upperReturnType}}_READ
+    const outScopeToken = td.M2M_TOKEN.OTHER_READ
+          {{/hasQueryParams}}
+        {{/x-head-method}}
         {{#x-put-method}}
-    const Payload = {
-      id: td.{{baseName}}.ForUpdate.id,
-      // TODO: change properties content
-      body: {
+    // TODO: change variable to right value
+    // TODO UNIT: copy id & body to unit
+    const id = {{baseName}}_A_ID
+    const body = {
     {{#bodyParams}}
     {{#isModel}}
       {{#vendorExtensions}}
         {{#x-refModel}}
           {{#vars}}
-        {{baseName}}: '',
+      {{baseName}}: '',
           {{/vars}}
         {{/x-refModel}}
       {{/vendorExtensions}}
     {{/isModel}}
     {{^isModel}}
-        {{baseName}}: '',
+       {{baseName}}: '',
     {{/isModel}}
     {{/bodyParams}}
-      }
     }
+    const URL = formatUpdateUrl(id)
+    const updateToken = td.M2M_TOKEN.{{upperReturnType}}_UPDATE
+    const outScopeToken = td.M2M_TOKEN.OTHER_UPDATE
         {{/x-put-method}}
         {{#x-patch-method}}
-    const Payload = {
-      id: td.{{baseName}}.ForPatch.id,
-      // TODO: modify properties content to origin value
-      body: {
+    // TODO: change variable to right value
+    // TODO UNIT: copy id & body to unit
+    const id = {{baseName}}_A_ID
+    const body = {
     {{#bodyParams}}
       {{#isModel}}
         {{#vendorExtensions}}
           {{#x-refModel}}
             {{#vars}}
-        {{baseName}}: '',
+      {{baseName}}: '',
             {{/vars}}
           {{/x-refModel}}
         {{/vendorExtensions}}
       {{/isModel}}
       {{^isModel}}
-        {{baseName}}: '',
+      {{baseName}}: '',
       {{/isModel}}
     {{/bodyParams}}
-      }
     }
+    const URL = formatPartiallyUpdateUrl(id)
+    const updateToken = td.M2M_TOKEN.{{upperReturnType}}_UPDATE
+    const outScopeToken = td.M2M_TOKEN.OTHER_UPDATE
         {{/x-patch-method}}
+        {{#x-delete-method}}
+    const id = {{baseName}}_A_ID
+    const URL = formatRemoveUrl(id)
+    const deleteToken = td.M2M_TOKEN.{{upperReturnType}}_DELETE
+    const outScopeToken = td.M2M_TOKEN.OTHER_DELETE
+        {{/x-delete-method}}
     describe('success request', () => {
         {{#x-head-method}}
           {{#hasQueryParams}}
-      _.each(USERS, user => {
+      const assertHeads = async (criteria, filters, token) => {
+        const res = await th.getRequest(formatSearchUrl(criteria), token)
+        should.equal(res.status, httpStatus.OK)
+        await th.assertHeadBody(res)
+        if (criteria.page) {
+          await assert.responseHeader(res.headers, filters.length, criteria.page, criteria.perPage)
+        } else {
+          await assert.responseHeader(res.headers, filters.length)
+        }
+      }
+      const users = [
+        ADMIN_USER,
+        COPILOT_USER,
+        _.assign({}, M2M_USER, { token: readToken })
+      ]
+      _.each(users, user => {
         it(`200 - should success when search all (${user.role})`, async () => {
-          const res = await th.headRequest(formatSearchUrl(), user.token)
-          should.equal(res.status, httpStatus.OK)
-          await th.assertHeadBody(res)
+          await assertHeads({}, RECORDS, user.token)
         })
       })
-      // TODO: add test values
+      // TODO UNIT: copy to unit
+      // test different search conditions
       const includesQuery = {
       {{#queryParams}}
         {{#isString}}
@@ -121,13 +211,14 @@ module.exports = describe('{{baseName}} resource', () => {
       _.each(includesQuery, (values, key) => {
         _.each(values, value => {
           xit(`200 - ${key}: should success when use '${String(value)}'`, async () => {
-            const res = await th.headRequest(formatSearchUrl({ [key]: value }), ADMIN_USER.token)
-            should.equal(res.status, httpStatus.OK)
-            await th.assertHeadBody(res)
+            // TODO: remove toLowerCase if need
+            const filters = RECORDS.filter(item =>
+              String(item[key]).toLowerCase().includes(String(value).toLowerCase()))
+            // TODO UNIT: await assertSearch({ [key]: value }, filters)
+            await assertHeads({ [key]: value }, filters, ADMIN_USER.token)
           })
         })
       })
-      // TODO: add test values
       const equalQuery = {
       {{#queryParams}}
         {{^isString}}
@@ -138,29 +229,47 @@ module.exports = describe('{{baseName}} resource', () => {
       _.each(equalQuery, (values, key) => {
         _.each(values, value => {
           xit(`200 - ${key}: should success when use '${String(value)}'`, async () => {
-            const res = await th.headRequest(formatSearchUrl({ [key]: value }), ADMIN_USER.token)
-            should.equal(res.status, httpStatus.OK)
-            await th.assertHeadBody(res)
+            const filters = RECORDS.filter(item => item[key] === value)
+            // TODO UNIT: await assertSearch({ [key]: value }, filters)
+            await assertHeads({ [key]: value }, filters, ADMIN_USER.token)
           })
         })
       })
-      xit('200 - search: should success when all condition', async () => {
+      xit('200 - search: should success when pagination', async () => {
+        const criteria = {
+          page: 2,
+          perPage: 2,
+          name: 'la'
+        }
+        // TODO: remove toLowerCase if need
+        const filters = RECORDS.filter(item =>
+          String(item.name).toLowerCase().includes(String(criteria.name).toLowerCase()))
+        // TODO UNIT: await assertSearch(criteria, filters)
+        await assertHeads(criteria, filters, ADMIN_USER.token)
+      })
+      xit('200 - search: should success when other condition', async () => {
         // TODO: modify body content
-        const body = {
+        const criteria = {
         {{#queryParams}}
           {{baseName}}: '',
         {{/queryParams}}
         }
-        const res = await th.headRequest(formatSearchUrl(body), ADMIN_USER.token)
-        should.equal(res.status, httpStatus.OK)
-        await th.assertHeadBody(res)
+        const filters = RECORDS.filter(item => {
+          return true
+        })
+        // TODO UNIT: await assertSearch(criteria, filters)
+        await assertHeads(criteria, filters, ADMIN_USER.token)
       })
           {{/hasQueryParams}}
           {{^hasQueryParams}}
-      _.each(USERS, user => {
+      const users = [
+        ADMIN_USER,
+        COPILOT_USER,
+        _.assign({}, M2M_USER, { token: readToken })
+      ]
+      _.each(users, user => {
         it(`200 - should success when find by id (${user.role})`, async () => {
-          const id = td.{{baseName}}.ForGet.id
-          const res = await th.headRequest(formatGetUrl(id), user.token)
+          const res = await th.headRequest(URL, user.token)
           should.equal(res.status, httpStatus.OK)
           await th.assertHeadBody(res)
         })
@@ -169,17 +278,33 @@ module.exports = describe('{{baseName}} resource', () => {
         {{/x-head-method}}
         {{#x-get-method}}
           {{#isListContainer}}
-      const assertSearch = async (token) => {
-        const res = await th.getRequest(formatSearchUrl(), token)
+      const assertSearch = async (criteria, filters, token) => {
+        const res = await th.getRequest(formatSearchUrl(criteria), token)
         should.equal(res.status, httpStatus.OK)
-        await assert.{{caseReturnType}}SearchBody(res.body, RECORDS)
+        if (criteria.page) {
+          await assert.responseHeader(res.headers, filters.length, criteria.page, criteria.perPage)
+          should.equal(res.body.length, criteria.perPage)
+        } else {
+          if (filters.length === 0) {
+            should.equal(0, res.body.length)
+          } else {
+            await assert.{{caseReturnType}}SearchBody(res.body, filters)
+            await assert.responseHeader(res.headers, filters.length)
+          }
+        }
       }
-      _.each(USERS, user => {
-        it(`200 - should success when search all (${user.role})`, async () => {
-          await assertSearch(user.token)
+      const users = [
+        ADMIN_USER,
+        COPILOT_USER,
+        _.assign({}, M2M_USER, { token: readToken })
+      ]
+      _.each(users, user => {
+        it(`200 - should success when no condition (${user.role})`, async () => {
+          await assertSearch({}, RECORDS, user.token)
         })
       })
-      // TODO: add test values
+      // TODO UNIT: copy to unit
+      // test different search conditions
       const includesQuery = {
       {{#queryParams}}
         {{#isString}}
@@ -190,16 +315,14 @@ module.exports = describe('{{baseName}} resource', () => {
       _.each(includesQuery, (values, key) => {
         _.each(values, value => {
           xit(`200 - ${key}: should success when use '${String(value)}'`, async () => {
-            const res = await th.getRequest(formatSearchUrl({ [key]: value }), ADMIN_USER.token)
-            should.equal(res.status, httpStatus.OK)
-            // TODO: if not case insensitive search, you need remove toLowerCase()
-            await assert.{{caseReturnType}}SearchBody(res.body,
-              RECORDS.filter(item => item[key].toLowerCase().includes(String(value).toLowerCase()))
-            )
+            // TODO: remove toLowerCase if need
+            const filters = RECORDS.filter(item =>
+              String(item[key]).toLowerCase().includes(String(value).toLowerCase()))
+            // TODO UNIT: await assertSearch({ [key]: value }, filters)
+            await assertSearch({ [key]: value }, filters, ADMIN_USER.token)
           })
         })
       })
-      // TODO: add test values
       const equalQuery = {
       {{#queryParams}}
         {{^isString}}
@@ -210,84 +333,97 @@ module.exports = describe('{{baseName}} resource', () => {
       _.each(equalQuery, (values, key) => {
         _.each(values, value => {
           xit(`200 - ${key}: should success when use '${String(value)}'`, async () => {
-            const data = {}
-            data[key] = value
-            const res = await th.getRequest(formatSearchUrl(data), ADMIN_USER.token)
-            should.equal(res.status, httpStatus.OK)
-            await assert.{{caseReturnType}}SearchBody(res.body,
-              RECORDS.filter(item => item[key] === value)
-            )
+            const filters = RECORDS.filter(item => item[key] === value)
+            // TODO UNIT: await assertSearch({ [key]: value }, filters)
+            await assertSearch({ [key]: value }, filters, ADMIN_USER.token)
           })
         })
       })
-      xit('200 - search: should success when all condition', async () => {
+      xit('200 - search: should success when pagination', async () => {
+        const criteria = {
+          page: 2,
+          perPage: 2,
+          name: 'la'
+        }
+        // TODO: remove toLowerCase if need
+        const filters = RECORDS.filter(item =>
+          String(item.name).toLowerCase().includes(String(criteria.name).toLowerCase()))
+        // TODO UNIT: await assertSearch(criteria, filters)
+        await assertSearch(criteria, filters, ADMIN_USER.token)
+      })
+      xit('200 - search: should success when other condition', async () => {
         // TODO: modify body content
-        const body = {
+        const criteria = {
       {{#queryParams}}
           {{baseName}}: '',
       {{/queryParams}}
         }
-        const res = await th.getRequest(formatSearchUrl(body), ADMIN_USER.token)
-        should.equal(res.status, httpStatus.OK)
-        // TODO: if not case insensitive search, you need remove toLowerCase()
-        const items = RECORDS.filter(item => {
+        const filters = RECORDS.filter(item => {
           return true
         })
-        await assert.{{caseReturnType}}SearchBody(res.body, items)
+        // TODO UNIT: await assertSearch(criteria, filters)
+        await assertSearch(criteria, filters, ADMIN_USER.token)
       })
           {{/isListContainer}}
           {{^isListContainer}}
-      _.each(USERS, user => {
+      const users = [
+        ADMIN_USER,
+        COPILOT_USER,
+        _.assign({}, M2M_USER, { token: readToken })
+      ]
+      _.each(users, user => {
         it(`200 - should success when find by id (${user.role})`, async () => {
-          const id = td.{{baseName}}.ForGet.id
-          const res = await th.getRequest(formatGetUrl(id), user.token)
+          const res = await th.getRequest(URL, user.token)
           should.equal(res.status, httpStatus.OK)
-          await assert.{{caseReturnType}}GetBody(res.body, RECORDS.find(item => item.id === id), td.SCRIPT_ID)
+          await assert.{{caseReturnType}}GetBody(res.body, RECORDS.find(item => item.id === id))
         })
       })
           {{/isListContainer}}
         {{/x-get-method}}
         {{#x-post-method}}
-      const { body } = Payload
-      // TODO: change body assign
-      const bodies = {
-        [ADMIN_USER.role]: _.assign({}, body, { name: body.name + ` ${ADMIN_USER.role} test` }),
-        [COPILOT_USER.role]: _.assign({}, body, { name: body.name + ` ${COPILOT_USER.role} test` }),
-        [M2M_TOKEN_SUB]: _.assign({}, body, { name: body.name + ' m2m test' })
-      }
-      _.each(USERS, user => {
-        it(`201 - should success when create (${user.role})`, async () => {
-          const oldRes = await th.getRequest(formatSearchUrl(bodies[user.role]), ADMIN_USER.token)
-          const res = await th.postRequest(formatCreateUrl(), bodies[user.role], user.token)
-          const newRes = await th.getRequest(formatGetUrl(res.body.id), ADMIN_USER.token)
-          should.equal(true, _.isEmpty(oldRes.body))
-          should.equal(res.status, td.HTTP_STATUS.CREATE_SUCCESS)
-          should.equal(true, moment(res.body.createdAt).isAfter(before))
-          await assert.{{caseReturnType}}CreateBody(res.body, newRes.body, user.handle || user.sub)
-          await assert.{{caseReturnType}}CreateBody(res.body, bodies[user.role])
-        })
-      })
-      xit('200 - should success when whitespace', async () => {
-        const newBody = _.assign({}, body, { name: '  ' })
-        const oldRes = await th.getRequest(formatSearchUrl(newBody), ADMIN_USER.token)
-        const res = await th.postRequest(formatCreateUrl(), newBody, ADMIN_USER.token)
+      const assertCreate = async (aBody, user) => {
+        // TODO: change search condition if need
+        const oldRes = await th.getRequest(formatSearchUrl({ name: aBody.name }), ADMIN_USER.token)
+        const res = await th.postRequest(formatCreateUrl(), aBody, user.token)
+        // TODO: remove if not need elastic search
+        await {{baseName}}IndexCreate(res.body)
         const newRes = await th.getRequest(formatGetUrl(res.body.id), ADMIN_USER.token)
-        should.equal(0, oldRes.body.length)
+        should.equal(true, _.isEmpty(oldRes.body))
         should.equal(res.status, td.HTTP_STATUS.CREATE_SUCCESS)
-        should.equal(true, moment(res.body.createdAt).isAfter(before))
-        await assert.{{caseReturnType}}CreateBody(res.body, newRes.body)
-        await assert.{{caseReturnType}}CreateBody(res.body, newBody)
+        should.equal(true, moment(res.body.createdAt).isAfter(beforeTest))
+        await assert.{{caseReturnType}}CreateBody(res.body, newRes.body, user.handle || user.sub)
+        await assert.{{caseReturnType}}CreateBody(res.body, aBody)
+        RECORDS.push(res.body)
+        newIds.push(res.body.id)
+      }
+      // TODO Unit: Copy bodies, users to unit
+      const bodies = [
+        _.assign({}, body, { name: body.name + ` ${ADMIN_USER.role} test` }),
+        _.assign({}, body, { name: body.name + ` ${COPILOT_USER.role} test` }),
+        _.assign({}, body, { name: body.name + ' m2m test' }),
+        {
+          // TODO: add more test data
+        }
+      ]
+      const users = [
+        ADMIN_USER,
+        COPILOT_USER,
+        _.assign({}, M2M_USER, { token: createToken }),
+        ..._.fill(new Array(bodies.length - 3), ADMIN_USER)
+      ]
+      // execute tests
+      _.each(bodies, (aBody, index) => {
+        it(`201 - should success when create  with ${JSON.stringify(aBody)} (${users[index].role})`, async () => {
+          await assertCreate(aBody, users[index])
+        })
       })
         {{/x-post-method}}
         {{#x-delete-method}}
-      const ids = {
-        [ADMIN_USER.role]: td.{{baseName}}.ForDelete.id,
-        [COPILOT_USER.role]: td.{{baseName}}.ForDelete.id1,
-        [M2M_TOKEN_SUB]: td.{{baseName}}.ForDelete.id2
-      }
-      const assertDelete = async (id, token) => {
+      const assertDelete = async (id, user) => {
         const oldRes = await th.getRequest(formatGetUrl(id), ADMIN_USER.token)
-        const res = await th.deleteRequest(formatRemoveUrl(id), token)
+        const res = await th.deleteRequest(formatRemoveUrl(id), user.token)
+        // TODO: remove if not need elastic search
+        await {{baseName}}IndexDelete(record)
         should.exist(oldRes.body)
         should.equal(res.status, td.HTTP_STATUS.DELETE_SUCCESS)
         await th.assertHeadBody(res)
@@ -298,33 +434,67 @@ module.exports = describe('{{baseName}} resource', () => {
           should.equal(err.status, httpStatus.NOT_FOUND)
         }
       }
-      _.each(USERS, user => {
-        it(`204 - should success when delete by id (${user.role})`, async () => {
-          await assertDelete(ids[user.role], user.token)
-        })
+      it(`204 - should success when delete by id (admin)`, async () => {
+        await assertDelete(RECORDS[0].id, ADMIN_USER)
+      })
+      it(`204 - should success when delete by id (copilot)`, async () => {
+        await assertDelete(RECORDS[1].id, COPILOT_USER)
+      })
+      it(`204 - should success when delete by id (m2m)`, async () => {
+        await assertDelete(RECORDS[2].id, _.assign({}, M2M_USER, { token: deleteToken }))
+      })
+      _.each(RECORDS, (record, index) => {
+        if (index > 2) {
+          it(`204 - should success when delete by id ${record.id}`, async () => {
+            await assertDelete(RECORDS[index].id, _.assign({}, M2M_USER, { token: deleteToken }))
+          })
+        }
       })
         {{/x-delete-method}}
         {{#x-put-method}}
-      const { id, body } = Payload
-      // TODO: change body assign
-      const bodies = {
-        [ADMIN_USER.role]: body,
-        [COPILOT_USER.role]: _.assign({}, {
+      const assertUpdate = async (aid, aBody, user) => {
+        const oldRes = await th.getRequest(formatGetUrl(aid), ADMIN_USER.token)
+        const res = await th.putRequest(formatUpdateUrl(aid), aBody, user.token)
+        // TODO: remove if not need elastic search
+        await {{baseName}}IndexUpdate(res.body)
+        const newRes = await th.getRequest(formatGetUrl(aid), ADMIN_USER.token)
+        should.not.equal(JSON.stringify(res.body), JSON.stringify(oldRes.body))
+        should.equal(res.status, httpStatus.OK)
+        await assert.{{caseReturnType}}PartialUpdateBody(res.body, newRes.body, user.handle || user.sub)
+        await assert.{{caseReturnType}}PartialUpdateBody(res.body, aBody)
+      }
+      // TODO UNIT: copy value to unit
+      const bodies = [
       {{#bodyParams}}
+        _.assign({}, {
+        {{#isModel}}
+          {{#vendorExtensions}}
+            {{#x-refModel}}
+              {{#vars}}
+          {{baseName}}: body.{{baseName}} + '-admin role',
+              {{/vars}}
+            {{/x-refModel}}
+          {{/vendorExtensions}}
+        {{/isModel}}
+        {{^isModel}}
+          {{baseName}}: body.{{baseName}} + '-admin role',
+        {{/isModel}}
+        }),
+        _.assign({}, {
       {{#isModel}}
         {{#vendorExtensions}}
           {{#x-refModel}}
             {{#vars}}
-          {{baseName}}: body.{{baseName}} + '-user role',
+          {{baseName}}: body.{{baseName}} + '-copilot role',
             {{/vars}}
           {{/x-refModel}}
         {{/vendorExtensions}}
       {{/isModel}}
       {{^isModel}}
-          {{baseName}}: body.{{baseName}} + '-user role',
+          {{baseName}}: body.{{baseName}} + '-copilot role',
       {{/isModel}}
         }),
-        [M2M_TOKEN_SUB]: _.assign({}, {
+        _.assign({}, {
       {{#isModel}}
         {{#vendorExtensions}}
           {{#x-refModel}}
@@ -339,58 +509,54 @@ module.exports = describe('{{baseName}} resource', () => {
       {{/isModel}}
       {{/bodyParams}}
         })
-      }
-      const assertUpdate = async (aBody, token, userId) => {
-        const oldRes = await th.getRequest(formatGetUrl(id), ADMIN_USER.token)
-        const res = await th.putRequest(formatUpdateUrl(id), aBody, token)
-        const newRes = await th.getRequest(formatGetUrl(id), ADMIN_USER.token)
-        should.equal(res.status, httpStatus.OK)
-        should.not.equal(oldRes.body.name, newRes.body.name)
-        should.not.equal(oldRes.body.phase, newRes.body.phase)
-        await assert.{{caseReturnType}}UpdateBody(res.body, newRes.body, userId)
-        await assert.{{caseReturnType}}UpdateBody(res.body, aBody)
-      }
-      _.each(USERS, user => {
-        it(`200 - should success when update by id (${user.role})`, async () => {
-          await assertUpdate(bodies[user.role], user.token, user.handle || user.sub )
+      ]
+      const ids = [
+        ..._.fill(new Array(bodies.length), id)
+      ]
+      // TODO UNIT: copy if need
+      const users = [
+        ADMIN_USER,
+        COPILOT_USER,
+        _.assign({}, M2M_USER, { token: updateToken }),
+        ..._.fill(new Array(bodies.length-3), ADMIN_USER)
+      ]
+      _.each(bodies, (aBody, index) => {
+        // TODO UNIT: await assertUpdate(ids[index], aBody)
+        it(`200 - should success when update with ${JSON.stringify(aBody)} (${users[index].role})`, async () => {
+          // TODO UNIT: await assertUpdate(ids[index], aBody, users[index])
+          await assertUpdate(ids[index], aBody, users[index])
         })
-      })
-      xit('200 - phase: should success when no change', async () => {
-        const oldRes = await th.getRequest(formatGetUrl(id), ADMIN_USER.token)
-        // TODO: edit properties
-        const res = await th.putRequest(formatUpdateUrl(id), _.pick(oldRes.body, ['name', 'more properties']), ADMIN_USER.token)
-        const newRes = await th.getRequest(formatGetUrl(id), ADMIN_USER.token)
-        should.equal(res.status, httpStatus.OK)
-        await assert.{{caseReturnType}}UpdateBody(res.body, newRes.body, ADMIN_USER.handle)
-        await assert.{{caseReturnType}}UpdateBody(res.body, oldRes.body)
       })
         {{/x-put-method}}
         {{#x-patch-method}}
-      const { id, body } = Payload
-      // TODO: change body content
-      const bodies = {
-        [ADMIN_USER.role]: { name: `${body.name} ${ADMIN_USER.role} update` },
-        [COPILOT_USER.role]: { name: `${body.name} ${COPILOT_USER.role} update` },
-        [M2M_TOKEN_SUB]: { name: `${body.name} ${M2M_TOKEN_SUB} update` }
-      }
       const assertPartiallyUpdate = async (aid, aBody, token, userId) => {
         const oldRes = await th.getRequest(formatGetUrl(aid), ADMIN_USER.token)
         const res = await th.patchRequest(formatPartiallyUpdateUrl(aid), aBody, token)
+        // TODO: remove if not need elastic search
+        await {{baseName}}IndexUpdate(record)
         const newRes = await th.getRequest(formatGetUrl(aid), ADMIN_USER.token)
         should.equal(res.status, httpStatus.OK)
         _.each(aBody, (value, key) => {
-          should.not.equal(oldRes.body[key], newRes.body[key])
-          should.equal(newRes.body[key], value)
+          if (_.isArray(value)) {
+            if (body !== aBody) {
+              should.not.equal(JSON.stringify(oldRes.body[key], JSON.stringify(value)))
+            }
+            should.equal(JSON.stringify(newRes.body[key]), JSON.stringify(value))
+          } else {
+            if (body !== aBody) {
+              should.not.equal(oldRes.body[key], value)
+            }
+            should.equal(newRes.body[key], value)
+          }
         })
         await assert.{{caseReturnType}}PartialUpdateBody(res.body, newRes.body, userId)
         await assert.{{caseReturnType}}PartialUpdateBody(res.body, _.assign({}, oldRes.body, aBody))
       }
-      _.each(USERS, user => {
-        it(`200 - should success when update with '${JSON.stringify(bodies[user.role])}' (${user.role})`, async () => {
-          await assertPartiallyUpdate(id, bodies[user.role], user.token, user.handle || user.sub)
-        })
-      })
-      const payloads = [
+      // TODO: change body content
+      const bodies = [
+        { name: `${body.name} ${ADMIN_USER.role} update` },
+        { name: `${body.name} ${COPILOT_USER.role} update` },
+        { name: `${body.name} ${M2M_TOKEN_SUB} update` },
       {{#bodyParams}}
         {{#isModel}}
           {{#vendorExtensions}}
@@ -404,12 +570,22 @@ module.exports = describe('{{baseName}} resource', () => {
         {{^isModel}}
         {{baseName}}: body.{{baseName}},
         {{/isModel}}
-        {{/bodyParams}}
+      {{/bodyParams}}
         body
       ]
-      _.each(payloads, payload => {
-        xit(`200 - should success when update with '${JSON.stringify(payload)}'`, async () => {
-          await assertPartiallyUpdate(id, payload, ADMIN_USER.token, ADMIN_USER.handle)
+      const ids = [
+        ..._.fill(new Array(bodies.length), id)
+      ]
+      // TODO UNIT: copy if need
+      const users = [
+        ADMIN_USER,
+        COPILOT_USER,
+        _.assign({}, M2M_USER, { token: updateToken }),
+        ..._.fill(new Array(bodies.length-3), ADMIN_USER)
+      ]
+      _.each(bodies, (aBody, index) => {
+        it(`200 - should success when update with '${JSON.stringify(aBody)}' (${users[index].role})`, async () => {
+          await assertPartiallyUpdate(ids[index], aBody, users[index])
         })
       })
         {{/x-patch-method}}
@@ -423,52 +599,124 @@ module.exports = describe('{{baseName}} resource', () => {
 
     xdescribe('fail request', () => {
         {{#x-post-method}}
-      const { body } = Payload
-      const URL = formatCreateUrl()
+      const param = {
+        body,
+        URL,
+        token: ADMIN_USER.token
+      }
       const requests = []
+      // TODO UNIT: copy belows
+      // test invalid param
       requests.push(...th.genStringTests(
-        // TODO: modify properties
         ['name'],
         td.STRING_INVALIDS,
-        {
-          URL,
-          token: ADMIN_USER.token,
-          body
-        }
+        param
       ))
       requests.push(...th.genBooleanTests(
-        // TODO: modify properties
         ['isActive'],
         td.BOOLEAN_INVALIDS,
-        {
-          URL,
-          token: ADMIN_USER.token,
-          body
-        }
+        param
       ))
-      requests.push(...td.authFailRequests(formatCreateUrl(), body))
+      requests.push(...th.genGuidTests(
+        ['typeId'],
+        td.GUID_INVALIDS,
+        param
+      ))
+      requests.push(...th.genDateTests(
+        ['startDate'],
+        td.DATE_INVALIDS,
+        param
+      ))
+      requests.push(...th.genNumberTests(
+        ['count'],
+        td.POSITIVE_INT_INVALIDS,
+        _.assign({}, param, {
+          needPositive: true,
+          needInteger: true
+        })
+      ))
+      requests.push(...th.genStringArrayTests(
+        ['tags'],
+        td.STRING_ARRAY_INVALIDS,
+        param
+      ))
+      requests.push(...[
+        {
+          title: '400 - should fail when invalid params',
+          params: [URL, _.assign({}, body, { invalid: 'invalid' }), ADMIN_USER.token],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.notAllow('invalid').message
+        },
+        {
+          title: '404 - typeId: should fail when id not exist',
+          params: [URL, _.assign({}, body, { typeId: td.NO_EXIST_ID }), ADMIN_USER.token],
+          status: httpStatus.NOT_FOUND,
+          message: td.ErrorMessage.TimelineTemplates_Not_Exist
+        },
+        {
+          title: '409 - should fail when dup name',
+          params: [URL, _.assign({}, body, { name: 'Standard Code' }), ADMIN_USER.token],
+          status: httpStatus.CONFLICT,
+          message: `{{baseName}} with name: Exist already exist`
+        }
+      ])
+      // test authorization and forbidden
+      requests.push(...[
+        {
+          title: '403 - should fail when user',
+          params: [URL, body, SUBMIT_USER.token],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        },
+        {
+          title: '403 - should fail when forbidden m2m token',
+          params: [URL, body, outScopeToken],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        }
+      ])
+      requests.push(...td.authFailRequests(URL, body))
+      // execute tests
       _.each(requests, request => {
         request.operation = th.postRequest
         th.failIt(request)
       })
         {{/x-post-method}}
         {{#x-delete-method}}
-      const id = td.{{baseName}}.ForGet.id
-      const requests = [
-      {
-        title: '400 - {{caseReturnType}}Id: should fail when not uuid',
-        params: [formatRemoveUrl(123), ADMIN_USER.token],
-        status: httpStatus.BAD_REQUEST,
-        message: jom.mustGuid('{{caseReturnType}}Id').message
-      },
-      {
-        title: '404 - {{caseReturnType}}Id: should fail when not exist',
-        params: [formatRemoveUrl(td.NO_EXIST_ID), ADMIN_USER.token],
-        status: httpStatus.NOT_FOUND,
-        message: td.ErrorMessage.{{baseName}}_Not_Exist
-      }
-      ]
-      requests.push(...td.authFailRequests(formatRemoveUrl(id)))
+      const requests = []
+      // TODO UNIT: copy to unit
+      // test invalid params
+      requests.push(...[
+        {
+          title: '400 - {{caseReturnType}}Id: should fail when not uuid',
+          params: [formatRemoveUrl('abc'), ADMIN_USER.token],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.mustGuid('{{caseReturnType}}Id').message
+        },
+        {
+          title: '404 - {{caseReturnType}}Id: should fail when not exist',
+          params: [formatRemoveUrl(td.NO_EXIST_ID), ADMIN_USER.token],
+          status: httpStatus.NOT_FOUND,
+          message: td.ErrorMessage.{{baseName}}_Not_Exist
+        }
+      ])
+      // test authorization and forbidden
+      requests.push(...[
+        {
+          title: '403 - should fail when user',
+          params: [URL, SUBMIT_USER.token],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        },
+        {
+          title: '403 - should fail when forbidden m2m token',
+          params: [URL, outScopeToken],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        }
+      ])
+      requests.push(...td.authFailRequests(URL))
+      // execute tests
       _.each(requests, request => {
         request.operation = th.deleteRequest
         th.failIt(request)
@@ -476,40 +724,105 @@ module.exports = describe('{{baseName}} resource', () => {
         {{/x-delete-method}}
         {{#x-head-method}}
           {{#hasQueryParams}}
-      const URL = formatSearchUrl()
+      const param = {
+        URL,
+        token: ADMIN_USER.token
+      }
       const requests = []
+      // test invalid params
       requests.push(...th.genStringTests(
         [{{#queryParams}}{{#isString}}'{{baseName}}', {{/isString}}{{/queryParams}}],
-        // TODO: change test value
-        ['test value'],
-        {
-          URL,
-          token: ADMIN_USER.token,
+        [''],
+        _.assign({}, param, {
           isSearch: true
-        }
+        })
       ))
       requests.push(...th.genBooleanTests(
         [{{#queryParams}}{{#isBoolean}}'{{baseName}}', {{/isBoolean}}{{/queryParams}}],
-        td.BOOLEAN_INVALIDS,
-        {
-          URL,
-          token: ADMIN_USER.token,
+        td.BOOLEAN_INVALIDS.filter(value => !_.isUndefined(value)),
+        _.assign({}, param, {
           isSearch: true
-        }
+        })
       ))
-      requests.push(...td.authFailRequests(formatSearchUrl()))
+      requests.push(...th.genDateTests(
+        ['createdDateStart'],
+        td.DATE_INVALIDS.filter(value => !_.isUndefined(value)),
+        _.assign({}, param, {
+          isSearch: true
+        })
+      ))
+      requests.push(...th.genNumberTests(
+        ['count'],
+        td.POSITIVE_INT_INVALIDS,
+        _.assign({}, param, {
+          isSearch: true,
+          needPositive: true,
+          needInteger: true
+        })
+      ))
+      requests.push(...th.genGuidTests(
+        ['id'],
+        ['', 'abc'],
+        _.assign({}, param, {
+          isSearch: true
+        })
+      ))
+      requests.push(...th.genNumberTests(
+        ['page'],
+        td.PAGE_INVALIDS,
+        _.assign({}, param, {
+          isSearch: true,
+          min: 1,
+          needInteger: true
+        })
+      ))
+      requests.push(...th.genNumberTests(
+        ['perPage'],
+        td.PERPAGE_INVALIDS,
+        _.assign({}, param, {
+          isSearch: true,
+          min: 1,
+          max: 100,
+          needInteger: true
+        })
+      ))
+      requests.push(...[
+        {
+          title: '400 - should fail when invalid params',
+          params: [formatSearchUrl({ invalid: 'invalid' }), ADMIN_USER.token],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.notAllow('invalid').message
+        }
+      ])
+      // test authorization and forbidden
+      requests.push(...[
+        {
+          title: '403 - should fail when user',
+          params: [URL, SUBMIT_USER.token],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        },
+        {
+          title: '403 - should fail when forbidden m2m token',
+          params: [URL, outScopeToken],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        }
+      ])
+      requests.push(...td.authFailRequests(URL))
+      // execute tests
       _.each(requests, request => {
-        request.operation = th.headRequest
-        request.message = undefined
+        request.operation = th.getRequest
         th.failIt(request)
       })
           {{/hasQueryParams}}
           {{^hasQueryParams}}
-      const id = td.{{baseName}}.ForGet.id
-      const requests = [
+      // test invalid params
+      const requests = []
+      requests.push(...[
         {
           title: '400 - {{caseReturnType}}Id: should fail when invalid id',
-          params: [formatGetUrl(123), ADMIN_USER.token],
+          params: [formatGetUrl('abc'), ADMIN_USER.token],
           status: httpStatus.BAD_REQUEST,
           message: jom.mustGuid('{{caseReturnType}}Id').message
         },
@@ -519,50 +832,135 @@ module.exports = describe('{{baseName}} resource', () => {
           status: httpStatus.NOT_FOUND,
           message: td.ErrorMessage.{{baseName}}_Not_Exist
         }
-      ]
-      requests.push(...td.authFailRequests(formatGetUrl(id)))
+      ])
+      // test authorization and forbidden
+      requests.push(...[
+        {
+          title: '403 - should fail when user',
+          params: [URL, SUBMIT_USER.token],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        },
+        {
+          title: '403 - should fail when forbidden m2m token',
+          params: [URL, outScopeToken],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        }
+      ])
+      requests.push(...td.authFailRequests(URL))
+      // execute tests
       _.each(requests, request => {
-        request.operation = th.headRequest
-        request.message = undefined
+        request.operation = th.getRequest
         th.failIt(request)
       })
           {{/hasQueryParams}}
         {{/x-head-method}}
         {{#x-get-method}}
           {{#isListContainer}}
-      const URL = formatSearchUrl()
+      const param = {
+        URL,
+        token: ADMIN_USER.token
+      }
       const requests = []
+      // TODO UNIT: copy to unit
+      // test invalid params
       requests.push(...th.genStringTests(
         [{{#queryParams}}{{#isString}}'{{baseName}}', {{/isString}}{{/queryParams}}],
-        // TODO: change test value
+        // TODO UNIT: td.STRING_INVALIDS.filter(value => !_.isUndefined(value)),
         [''],
-        {
-          URL,
-          token: ADMIN_USER.token,
+        _.assign({}, param, {
           isSearch: true
-        }
+        })
       ))
       requests.push(...th.genBooleanTests(
         [{{#queryParams}}{{#isBoolean}}'{{baseName}}', {{/isBoolean}}{{/queryParams}}],
-        td.BOOLEAN_INVALIDS,
-        {
-          URL,
-          token: ADMIN_USER.token,
+        td.BOOLEAN_INVALIDS.filter(value => !_.isUndefined(value)),
+        _.assign({}, param, {
           isSearch: true
-        }
+        })
       ))
-      requests.push(...td.authFailRequests(formatSearchUrl()))
+      requests.push(...th.genDateTests(
+        ['createdDateStart'],
+        td.DATE_INVALIDS.filter(value => !_.isUndefined(value)),
+        _.assign({}, param, {
+          isSearch: true
+        })
+      ))
+      requests.push(...th.genNumberTests(
+        ['count'],
+        td.POSITIVE_INT_INVALIDS,
+        _.assign({}, param, {
+          isSearch: true,
+          needPositive: true,
+          needInteger: true
+        })
+      ))
+      requests.push(...th.genGuidTests(
+        ['id'],
+        // TODO UNIT: td.STRING_INVALIDS.filter(item => !_.isUndefined(item)),
+        ['', 'abc'],
+        _.assign({}, param, {
+          isSearch: true
+        })
+      ))
+      requests.push(...th.genNumberTests(
+        ['page'],
+        td.PAGE_INVALIDS,
+        _.assign({}, param, {
+          isSearch: true,
+          min: 1,
+          needInteger: true
+        })
+      ))
+      requests.push(...th.genNumberTests(
+        ['perPage'],
+        td.PERPAGE_INVALIDS,
+        _.assign({}, param, {
+          isSearch: true,
+          min: 1,
+          max: 100,
+          needInteger: true
+        })
+      ))
+      requests.push(...[
+        {
+          title: '400 - should fail when invalid params',
+          params: [formatSearchUrl({ invalid: 'invalid' }), ADMIN_USER.token],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.notAllow('invalid').message
+        }
+      ])
+      // test authorization and forbidden
+      requests.push(...[
+        {
+          title: '403 - should fail when user',
+          params: [URL, SUBMIT_USER.token],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        },
+        {
+          title: '403 - should fail when forbidden m2m token',
+          params: [URL, outScopeToken],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        }
+      ])
+      requests.push(...td.authFailRequests(URL))
+      // execute tests
       _.each(requests, request => {
         request.operation = th.getRequest
         th.failIt(request)
       })
           {{/isListContainer}}
           {{^isListContainer}}
-      const id = td.{{baseName}}.ForGet.id
-      const requests = [
+      // TODO UNIT: copy to unit
+      // test invalid params
+      const requests = []
+      requests.push(...[
         {
           title: '400 - {{caseReturnType}}Id: should fail when invalid id',
-          params: [formatGetUrl(123), ADMIN_USER.token],
+          params: [formatGetUrl('abc'), ADMIN_USER.token],
           status: httpStatus.BAD_REQUEST,
           message: jom.mustGuid('{{caseReturnType}}Id').message
         },
@@ -572,8 +970,24 @@ module.exports = describe('{{baseName}} resource', () => {
           status: httpStatus.NOT_FOUND,
           message: td.ErrorMessage.{{baseName}}_Not_Exist
         }
-      ]
-      requests.push(...td.authFailRequests(formatGetUrl(id)))
+      ])
+      // test authorization and forbidden
+      requests.push(...[
+        {
+          title: '403 - should fail when user',
+          params: [URL, SUBMIT_USER.token],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        },
+        {
+          title: '403 - should fail when forbidden m2m token',
+          params: [URL, outScopeToken],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        }
+      ])
+      requests.push(...td.authFailRequests(URL))
+      // execute tests
       _.each(requests, request => {
         request.operation = th.getRequest
         th.failIt(request)
@@ -581,84 +995,168 @@ module.exports = describe('{{baseName}} resource', () => {
           {{/isListContainer}}
         {{/x-get-method}}
         {{#x-put-method}}
-      const { id, body } = Payload
-      const URL = formatUpdateUrl(id)
+      const param = {
+        body,
+        URL,
+        token: ADMIN_USER.token
+      }
       const requests = []
-      // TODO: edit properties
+      // TODO UNIT: copy to unit
+      // test invalid params
       requests.push(...th.genStringTests(
-        ['name', 'more properties'],
+        ['name'],
         td.STRING_INVALIDS,
-        {
-          URL,
-          token: ADMIN_USER.token,
-          body
-        }
+        param
       ))
-      // TODO: edit properties
       requests.push(...th.genBooleanTests(
         ['isActive'],
         td.BOOLEAN_INVALIDS,
-        {
-          URL,
-          token: ADMIN_USER.token,
-          body
-        }
+        param
       ))
-      requests.push(...[{
-        title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
-        params: [formatUpdateUrl(123), body, ADMIN_USER.token],
-        status: httpStatus.BAD_REQUEST,
-        message: jom.mustGuid('{{caseReturnType}}Id').message
-      },
-      {
-        title: '404 - {{caseReturnType}}Id: should fail when id not exist',
-        params: [formatUpdateUrl(td.NO_EXIST_ID), body, ADMIN_USER.token],
-        status: httpStatus.NOT_FOUND,
-        message: td.ErrorMessage.{{baseName}}_Not_Exist
-      }])
-      requests.push(...td.authFailRequests(formatUpdateUrl(id), body))
+      requests.push(...th.genGuidTests(
+        ['typeId'],
+        td.GUID_INVALIDS,
+        param
+      ))
+      requests.push(...th.genDateTests(
+        ['startDate'],
+        td.DATE_INVALIDS,
+        param
+      ))
+      requests.push(...th.genNumberTests(
+        ['projectId'],
+        td.POSITIVE_INT_INVALIDS,
+        _.assign({}, param, {
+          needPositive: true,
+          needInteger: true
+        })
+      ))
+      requests.push(...th.genStringArrayTests(
+        ['tags'],
+        td.STRING_ARRAY_INVALIDS,
+        param
+      ))
+      requests.push(...[
+        {
+          title: '400 - should fail when invalid params',
+          params: [URL, _.assign({}, body, { invalid: 'invalid' }), ADMIN_USER.token],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.notAllow('invalid').message
+        },
+        {
+          title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
+          params: [formatUpdateUrl('abc'), body, ADMIN_USER.token],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.mustGuid('{{caseReturnType}}Id').message
+        },
+        {
+          title: '404 - {{caseReturnType}}Id: should fail when id not exist',
+          params: [formatUpdateUrl(td.NO_EXIST_ID), body, ADMIN_USER.token],
+          status: httpStatus.NOT_FOUND,
+          message: td.ErrorMessage.{{baseName}}_Not_Exist
+        }
+      ])
+      // test authorization and forbidden
+      requests.push(...[
+        {
+          title: '403 - should fail when user',
+          params: [URL, body, SUBMIT_USER.token],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        },
+        {
+          title: '403 - should fail when forbidden m2m token',
+          params: [URL, body, outScopeToken],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        }
+      ])
+      requests.push(...td.authFailRequests(URL, body))
+      // execute tests
       _.each(requests, request => {
         request.operation = th.putRequest
         th.failIt(request)
       })
         {{/x-put-method}}
         {{#x-patch-method}}
-      const { id, body } = Payload
-      const URL = formatPartiallyUpdateUrl(id)
+      const param = {
+        body,
+        URL,
+        token: ADMIN_USER.token
+      }
       const requests = []
+      // TODO UNIT: copy to unit
+      // test invalid params
       requests.push(...th.genStringTests(
-        // TODO: edit properties
-        ['name', 'more properties'],
-        td.STRING_INVALIDS.filter(item => !_.isUndefined(item)),
-        {
-          URL,
-          token: ADMIN_USER.token,
-          body
-        }
+        ['name'],
+        td.STRING_INVALIDS.filter(value => !_.isUndefined(value)),
+        param
       ))
       requests.push(...th.genBooleanTests(
-        // TODO: edit properties
         ['isActive'],
-        td.BOOLEAN_INVALIDS,
-        {
-          URL,
-          token: ADMIN_USER.token,
-          body
-        }
+        td.BOOLEAN_INVALIDS.filter(value => !_.isUndefined(value)),
+        param
       ))
-      requests.push(...[{
-        title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
-        params: [formatPartiallyUpdateUrl(123), body, ADMIN_USER.token],
-        status: httpStatus.BAD_REQUEST,
-        message: jom.mustGuid('{{caseReturnType}}Id').message
-      },
-      {
-        title: '404 - {{caseReturnType}}Id: should fail when id not exist',
-        params: [formatPartiallyUpdateUrl(td.NO_EXIST_ID), body, ADMIN_USER.token],
-        status: httpStatus.NOT_FOUND,
-        message: td.ErrorMessage.{{baseName}}_Not_Exist
-      }])
-      requests.push(...td.authFailRequests(formatPartiallyUpdateUrl(id), body))
+      requests.push(...th.genGuidTests(
+        ['typeId'],
+        td.GUID_INVALIDS.filter(value => !_.isUndefined(value)),
+        param
+      ))
+      requests.push(...th.genDateTests(
+        ['startDate'],
+        td.DATE_INVALIDS.filter(item => !_.isUndefined(item)),
+        param
+      ))
+      requests.push(...th.genNumberTests(
+        ['projectId'],
+        td.POSITIVE_INT_INVALIDS.filter(item => !_.isUndefined(item)),
+        _.assign({}, param, {
+          needPositive: true,
+          needInteger: true
+        })
+      ))
+      requests.push(...th.genStringArrayTests(
+        ['tags'],
+        td.STRING_ARRAY_INVALIDS.filter(item => !_.isUndefined(item)),
+        param
+      ))
+      requests.push(...[
+        {
+          title: '400 - should fail when invalid params',
+          params: [URL, _.assign({}, body, { invalid: 'invalid' }), ADMIN_USER.token],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.notAllow('invalid').message
+        },
+        {
+          title: '400 - {{caseReturnType}}Id: should fail when invalid uuid format',
+          params: [formatPartiallyUpdateUrl('abc'), body, ADMIN_USER.token],
+          status: httpStatus.BAD_REQUEST,
+          message: jom.mustGuid('{{caseReturnType}}Id').message
+        },
+        {
+          title: '404 - {{caseReturnType}}Id: should fail when id not exist',
+          params: [formatPartiallyUpdateUrl(td.NO_EXIST_ID), body, ADMIN_USER.token],
+          status: httpStatus.NOT_FOUND,
+          message: td.ErrorMessage.{{baseName}}_Not_Exist
+        }
+      ])
+      // test authorization and forbidden
+      requests.push(...[
+        {
+          title: '403 - should fail when user',
+          params: [URL, body, SUBMIT_USER.token],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        },
+        {
+          title: '403 - should fail when forbidden m2m token',
+          params: [URL, body, outScopeToken],
+          status: httpStatus.FORBIDDEN,
+          message: tc.ErrorMessage.Forbidden
+        }
+      ])
+      requests.push(...td.authFailRequests(URL, body))
+      // execute tests
       _.each(requests, request => {
         request.operation = th.patchRequest
         th.failIt(request)
